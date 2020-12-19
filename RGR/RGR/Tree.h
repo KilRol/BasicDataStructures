@@ -23,11 +23,14 @@ struct MyPair {
 		if (this->arg == p.arg) return true;
 		else return false;
 	}
+
 	MyPair& operator=(MyPair& p) {
 		this->arg = p.arg;
 		this->value = p.value;
 		return *this;
 	}
+
+	//Arithmetic operations
 	MyPair operator+(MyPair& p) {
 		MyPair a(*this);
 		a.value = a.value + p.value;
@@ -48,11 +51,20 @@ struct MyPair {
 		a.value = a.value / p.value;
 		return a;
 	}
+
 	int getValue() {
 		return this->value;
 	}
+	int getArg() {
+		return this->arg;
+	}
+
 	friend ostream& operator<<(ostream& os, const MyPair& p) {
-		return os << "(" << p.arg << ", " << p.value << ")";
+		return os << p.arg << ">" << p.value;
+	}
+	friend istream& operator>>(istream& is, MyPair& p) {
+		char a;
+		return is >> p.arg >> a >> p.value;
 	}
 };
 
@@ -120,13 +132,52 @@ public:
 		}
 	}
 
-	void infixTraverse(Node* root) {
+	void prefixTraverse(Node* root, ostream& os, bool flag = 1) {
 		if (root) {
-			infixTraverse(root->left);
-			cout << root->value << " ";
-			infixTraverse(root->right);
+			if (flag) os << root->value;
+			else os << ", " << root->value;
+			prefixTraverse(root->left, os, 0);
+			prefixTraverse(root->right, os, 0);
 		}
 	}
+
+	friend ostream& operator<<(ostream& os, Tree& t) {
+		os << '{';
+		t.prefixTraverse(t.getRoot(), os);
+		os << '}';
+		return os;
+	}
+
+	friend istream& operator>>(istream& is, Tree& t) {
+		MyPair a;
+		char b;
+		
+		is >> b;
+		do {
+			is >> a;
+			t.push(t.getRoot(), a);
+			is >> b;
+		} while (b != '}');
+		return is;
+	}
+
+	static Node* static_merge(Node* t1, Node* t2) {
+		if (!t1) {
+			return t2;
+		}
+		if (!t2) {
+			return t1;
+		}
+
+		Node* a = static_merge(t1->right, t2);
+		t1->right = a;
+		return t1;
+	}
+
+	void merge(Tree& t) {
+		this->root = static_merge(this->root, t.getRoot());
+	}
+
 
 };
 

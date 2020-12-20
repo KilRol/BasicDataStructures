@@ -1,95 +1,114 @@
 #pragma once
 #include <iostream>
+#include "Pair.h"
 using namespace std;
-
-struct MyPair {
-	int arg;
-	int value;
-	MyPair(int arg = int(), int num2 = int()) {
-		this->arg = arg;
-		this->value = num2;
-	}
-	MyPair(const MyPair& p) {
-		this->arg = p.arg;
-		this->value = p.value;
-	}
-	bool operator<(MyPair& p) {
-		if (this->arg < p.arg) return true;
-		else if (this->arg > p.arg) return false;
-		else if (this->value < p.value) return true;
-		else return false;
-	}
-	bool operator==(MyPair& p) {
-		if (this->arg == p.arg) return true;
-		else return false;
-	}
-
-	MyPair& operator=(MyPair& p) {
-		this->arg = p.arg;
-		this->value = p.value;
-		return *this;
-	}
-
-	//Arithmetic operations
-	MyPair operator+(MyPair& p) {
-		MyPair a(*this);
-		a.value = a.value + p.value;
-		return a;
-	}
-	MyPair operator-(MyPair& p) {
-		MyPair a(*this);
-		a.value = a.value - p.value;
-		return a;
-	}
-	MyPair operator*(MyPair& p) {
-		MyPair a(*this);
-		a.value = a.value * p.value;
-		return a;
-	}
-	MyPair operator/(MyPair& p) {
-		MyPair a(*this);
-		a.value = a.value / p.value;
-		return a;
-	}
-
-	int getValue() {
-		return this->value;
-	}
-	int getArg() {
-		return this->arg;
-	}
-
-	friend ostream& operator<<(ostream& os, const MyPair& p) {
-		return os << p.arg << ">" << p.value;
-	}
-	friend istream& operator>>(istream& is, MyPair& p) {
-		char a;
-		return is >> p.arg >> a >> p.value;
-	}
-};
-
-struct Node {
-	MyPair value;
-	Node* left;
-	Node* right;
-
-	Node(MyPair value = MyPair()) {
-		this->value = value;
-		this->left = nullptr;
-		this->right = nullptr;
-	}
-	Node(MyPair value, Node* left, Node* right) {
-		this->value = value;
-		this->left = left;
-		this->right = right;
-	}
-};
 
 class Tree
 {
 private:
+	class Node
+	{
+	public:
+		Pair value;
+		Node* left;
+		Node* right;
+		Node* parent;
+		Node(Pair value = Pair()) {
+			this->value = value;
+			this->left = nullptr;
+			this->right = nullptr;
+			this->parent = nullptr;
+		}
+		Node(Pair value, Node* left, Node* right, Node* parent) {
+			this->value = value;
+			this->left = left;
+			this->right = right;
+			this->parent = parent;
+		}
+	};
+
+protected:
 	Node* root;
+	static Node*& next(Node*& root) {
+		if (root->right) return minimum(root->right);
+		Node* y = root->parent;
+		while (y && root == y->right) {
+			root = y;
+			y = y->parent;
+		}
+		return y;
+	}
+
+	static Node*& prev(Node*& root) {
+		if (root->left) return maximum(root->left);
+		Node* y = root->parent;
+		while (y && root == y->left) {
+			root = y;
+			y = y->parent;
+		}
+		return y;
+	}
+
+	static Node*& minimum(Node*& root) {
+		if (!root->left) return root;
+		return minimum(root->left);
+	}
+
+	static Node*& maximum(Node*& root) {
+		if (!root->right) return root;
+		return minimum(root->right);
+	}
 public:
+
+	class Iterator {
+	public:
+		friend class Tree;
+		Node* ptr;
+		Iterator() {
+			this->ptr = nullptr;
+		}
+		Iterator(const Iterator& iter) {
+			this->ptr = iter.ptr;
+		}
+		Iterator& operator=(const Iterator& iter) {
+			this->ptr = iter.ptr;
+			return *this;
+		}
+		Iterator& operator++(int) {
+			Iterator iter = *this;
+			ptr = next(ptr);
+			return iter;
+		}
+		Iterator& operator++() {
+			ptr = next(ptr);
+			return *this;
+		}
+		Iterator& operator--(int) {
+			Iterator iter = *this;
+			ptr = prev(ptr);
+			return iter;
+		}
+		Iterator& operator--() {
+			ptr = prev(ptr);
+			return *this;
+		}
+		Pair& operator*() {
+			return (*ptr).value;
+		}
+		Pair* operator->() {
+			return &(ptr->value);
+		}
+
+		bool operator!=(const Iterator& iter) {
+			return (iter.ptr != ptr);
+		}
+
+		bool operator==(const Iterator& iter) {
+			return (iter.ptr == ptr);
+		}
+
+	};
+
 	Tree() {
 		root = nullptr;
 	}
@@ -98,46 +117,87 @@ public:
 		return this->root;
 	}
 
-	Node*& findValue(Node*& root, int arg) {
-		if (root->value.arg == arg) return root;
-		if (arg < root->value.arg) findValue(root->left, arg);
-		else findValue(root->right, arg);
+	Iterator begin() {
+		Iterator it;
+		it.ptr = minimum(this->root);
+		return it;
+	}
+	Iterator end() {
+		Iterator it;
+		it.ptr = nullptr;
+		return it;
+	}
+
+	Node*& search_by_arg(Node* root, int arg) {
+		if ((!root) || arg == root->value.getArg()) return root;
+		if (arg < root->value.getArg()) return search_by_arg(root->left, arg);
+		else return search_by_arg(root->right, arg);
+	}
+
+	Pair& at(const int index) {
+		try {
+			Iterator iter = begin();
+			int i = 0;
+			for (; i < index && iter != end(); i++, iter++);
+			if (i == index) return *iter;
+			else throw "out of range";
+		}
+		catch (const char* e) {
+			cout << e;
+		}
 	}
 
 	int getValue(int arg) {
-		return findValue(getRoot(), arg)->value.value;
+		return search_by_arg(getRoot(), arg)->value.getValue();
 	}
 
-	Node*& findArg(Node*& root, int value) {
-		if (root->value.value == value) return root;
-		if (value < root->value.value) findValue(root->left, value);
-		else findValue(root->right, value);
+	Node*& search_by_value(Node* root, int value) {
+		if ((!root) || value == root->value.getValue()) return root;
+		if (value < root->value.getValue()) return search_by_value(root->left, value);
+		else return search_by_value(root->right, value);
 	}
+
 	int getInvertable(int value) {
-		return findArg(getRoot(), value)->value.arg;
+		return search_by_value(getRoot(), value)->value.getArg();
 	}
 
-	void push(Node*& root, MyPair value) {
-		if (!root)
-		{
-			root = new Node(value);
+	void push(Node* root, Pair value) {
+		Node* nd = new Node(value);
+		if (!root) {
+			this->root = nd;
+			return;
 		}
-		else
-		{
-			if (value < root->value)
-				push(root->left, value);
-			else {
-				push(root->right, value);
+		while (root) {
+			if (nd->value > root->value) {
+				if (root->right) root = root->right;
+				else {
+					nd->parent = root;
+					root->right = nd;
+					break;
+				}
+			}
+			else if (nd->value < root->value) {
+				if (root->left) root = root->left;
+				else {
+					nd->parent = root;
+					root->left = nd;
+					break;
+				}
 			}
 		}
 	}
 
 	void prefixTraverse(Node* root, ostream& os, bool flag = 1) {
 		if (root) {
-			if (flag) os << root->value;
-			else os << ", " << root->value;
-			prefixTraverse(root->left, os, 0);
-			prefixTraverse(root->right, os, 0);
+			try {
+				if (flag) os << root->value;
+				else os << ", " << root->value;
+				prefixTraverse(root->left, os, 0);
+				prefixTraverse(root->right, os, 0);
+			}
+			catch (const char* e) {
+				cout << e;
+			}
 		}
 	}
 
@@ -149,7 +209,7 @@ public:
 	}
 
 	friend istream& operator>>(istream& is, Tree& t) {
-		MyPair a;
+		Pair a;
 		char b;
 		
 		is >> b;

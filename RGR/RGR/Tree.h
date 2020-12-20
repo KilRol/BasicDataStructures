@@ -337,7 +337,7 @@ public:
 				int a = (*iter).getArg();
 				int b = search_by_arg(getRoot(), (*iter).getValue())->value.getValue();
 				tree.push(tree.getRoot(), Pair(a, b));
-			}
+			}	
 			iter++;
 		}
 		return tree;
@@ -345,15 +345,10 @@ public:
 
 	void prefixTraverse(Node* root, ostream& os, bool flag = 1) {
 		if (root) {
-			try {
-				if (flag) os << root->value;
-				else os << ", " << root->value;
-				prefixTraverse(root->left, os, 0);
-				prefixTraverse(root->right, os, 0);
-			}
-			catch (const char* e) {
-				cout << e;
-			}
+			if (flag) os << root->value;
+			else os << ", " << root->value;
+			prefixTraverse(root->left, os, 0);
+			prefixTraverse(root->right, os, 0);
 		}
 	}
 

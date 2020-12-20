@@ -1,7 +1,102 @@
 #pragma once
 #include <iostream>
-#include "Pair.h"
+#include <iomanip>
 using namespace std;
+
+class Pair
+{
+private:
+	int arg;
+	int value;
+
+public:
+	Pair(int arg = int(), int num2 = int()) {
+		this->arg = arg;
+		this->value = num2;
+	}
+	Pair(const Pair& p) {
+		this->arg = p.arg;
+		this->value = p.value;
+	}
+	bool operator==(Pair& p) {
+		if (this->arg == p.arg) return true;
+		else return false;
+	}
+	bool operator!=(Pair& p) {
+		return !(*this == p);
+	}
+	bool operator<(Pair& p) {
+		if (this->arg < p.arg) return true;
+		else if (this->arg > p.arg) return false;
+		else if (this->value < p.value) return true;
+		else return false;
+	}
+	bool operator>(Pair& p) {
+		if (this->arg > p.arg) return true;
+		else if (this->arg < p.arg) return false;
+		else if (this->value > p.value) return true;
+		else return false;
+	}
+	Pair& operator=(Pair& p) {
+		this->arg = p.arg;
+		this->value = p.value;
+		return *this;
+	}
+	//Arithmetic operations
+	Pair operator+(Pair& p) {
+		Pair a(*this);
+		a.value = a.value + p.value;
+		return a;
+	}
+	Pair operator-(Pair& p) {
+		Pair a(*this);
+		a.value = a.value - p.value;
+		return a;
+	}
+	Pair operator*(Pair& p) {
+		Pair a(*this);
+		a.value = a.value * p.value;
+		return a;
+	}
+	Pair operator/(Pair& p) {
+		Pair a(*this);
+		a.value = a.value / p.value;
+		return a;
+	}
+	Pair& operator+=(Pair& p) {
+		this->arg = this->arg + p.arg;
+		this->value = this->value + p.value;
+		return *this;
+	}
+	Pair& operator-=(Pair& p) {
+		this->arg = this->arg - p.arg;
+		this->value = this->value - p.value;
+		return *this;
+	}
+	Pair& operator*=(Pair& p) {
+		this->arg = this->arg * p.arg;
+		this->value = this->value * p.value;
+		return *this;
+	}
+	Pair& operator/=(Pair& p) {
+		this->arg = this->arg / p.arg;
+		this->value = this->value / p.value;
+		return *this;
+	}
+	int getValue() {
+		return this->value;
+	}
+	int getArg() {
+		return this->arg;
+	}
+	friend ostream& operator<<(ostream& os, const Pair& p) {
+		return os << p.arg << ">" << p.value;
+	}
+	friend istream& operator>>(istream& is, Pair& p) {
+		char a;
+		return is >> p.arg >> a >> p.value;
+	}
+};
 
 class Tree
 {
@@ -30,36 +125,49 @@ private:
 protected:
 	Node* root;
 	static Node*& next(Node*& root) {
-		if (root->right) return minimum(root->right);
+		if (root->right) {
+			return minimum(root->right);
+		}
+
 		Node* y = root->parent;
 		while (y && root == y->right) {
 			root = y;
 			y = y->parent;
 		}
+
 		return y;
 	}
 
 	static Node*& prev(Node*& root) {
-		if (root->left) return maximum(root->left);
+		if (root->left) {
+			return maximum(root->left);
+		}
+
 		Node* y = root->parent;
 		while (y && root == y->left) {
 			root = y;
 			y = y->parent;
 		}
+
 		return y;
 	}
 
 	static Node*& minimum(Node*& root) {
-		if (!root->left) return root;
+		if (!root->left) {
+			return root;
+		}
+
 		return minimum(root->left);
 	}
 
 	static Node*& maximum(Node*& root) {
-		if (!root->right) return root;
+		if (!root->right) {
+			return root;
+		}
+
 		return minimum(root->right);
 	}
 public:
-
 	class Iterator {
 	public:
 		friend class Tree;
@@ -74,7 +182,7 @@ public:
 			this->ptr = iter.ptr;
 			return *this;
 		}
-		Iterator& operator++(int) {
+		Iterator operator++(int) {
 			Iterator iter = *this;
 			ptr = next(ptr);
 			return iter;
@@ -83,7 +191,7 @@ public:
 			ptr = next(ptr);
 			return *this;
 		}
-		Iterator& operator--(int) {
+		Iterator operator--(int) {
 			Iterator iter = *this;
 			ptr = prev(ptr);
 			return iter;
@@ -98,15 +206,18 @@ public:
 		Pair* operator->() {
 			return &(ptr->value);
 		}
-
 		bool operator!=(const Iterator& iter) {
 			return (iter.ptr != ptr);
 		}
-
 		bool operator==(const Iterator& iter) {
 			return (iter.ptr == ptr);
 		}
-
+		bool operator<(const Iterator& iter) {
+			return (iter.ptr < ptr);
+		}
+		bool operator>(const Iterator& iter) {
+			return (iter.ptr > ptr);
+		}
 	};
 
 	Tree() {
@@ -122,6 +233,7 @@ public:
 		it.ptr = minimum(this->root);
 		return it;
 	}
+
 	Iterator end() {
 		Iterator it;
 		it.ptr = nullptr;
@@ -132,19 +244,6 @@ public:
 		if ((!root) || arg == root->value.getArg()) return root;
 		if (arg < root->value.getArg()) return search_by_arg(root->left, arg);
 		else return search_by_arg(root->right, arg);
-	}
-
-	Pair& at(const int index) {
-		try {
-			Iterator iter = begin();
-			int i = 0;
-			for (; i < index && iter != end(); i++, iter++);
-			if (i == index) return *iter;
-			else throw "out of range";
-		}
-		catch (const char* e) {
-			cout << e;
-		}
 	}
 
 	int getValue(int arg) {
@@ -159,6 +258,22 @@ public:
 
 	int getInvertable(int value) {
 		return search_by_value(getRoot(), value)->value.getArg();
+	}
+
+	Pair& at(const int index) {
+		try {
+			Iterator iter = begin();
+			int i = 0;
+
+			for (; i < index && iter != end(); i++, iter++);
+			if (i == index) {
+				return *iter;
+			}
+			else throw "out of range";
+		}
+		catch (const char* e) {
+			cout << e;
+		}
 	}
 
 	void push(Node* root, Pair value) {
@@ -184,19 +299,41 @@ public:
 					break;
 				}
 			}
+			else {
+				break;
+			}
 		}
 	}
 
 	void prefixTraverse(Node* root, ostream& os, bool flag = 1) {
 		if (root) {
 			try {
+
+				prefixTraverse(root->left, os, 0);
 				if (flag) os << root->value;
 				else os << ", " << root->value;
-				prefixTraverse(root->left, os, 0);
 				prefixTraverse(root->right, os, 0);
 			}
 			catch (const char* e) {
 				cout << e;
+			}
+		}
+	}
+
+	static void postorder(Node* p, int indent)
+	{
+		if (p != NULL) {
+			if (p->right) {
+				postorder(p->right, indent + 4);
+			}
+			if (indent) {
+				std::cout << std::setw(indent) << ' ';
+			}
+			if (p->right) std::cout << " /\n" << std::setw(indent) << ' ';
+			std::cout << p->value << "\n ";
+			if (p->left) {
+				std::cout << std::setw(indent) << ' ' << " \\\n";
+				postorder(p->left, indent + 4);
 			}
 		}
 	}
@@ -211,33 +348,57 @@ public:
 	friend istream& operator>>(istream& is, Tree& t) {
 		Pair a;
 		char b;
-		
+
 		is >> b;
 		do {
 			is >> a;
 			t.push(t.getRoot(), a);
 			is >> b;
 		} while (b != '}');
+
 		return is;
 	}
 
-	static Node* static_merge(Node* t1, Node* t2) {
-		if (!t1) {
-			return t2;
+	Tree merge(Tree& t) {
+		Tree tree;
+		Iterator iter1 = begin();
+		Iterator iter2 = t.begin();
+
+		while (iter1 != end() && iter2 != t.end()) {
+			if (*iter1 < *iter2) {
+				tree.push(tree.getRoot(), *(iter1++));
+			}
+			else if (*iter1 > * iter2) {
+				tree.push(tree.getRoot(), *(iter2++));
+			}
+			else {
+				tree.push(tree.getRoot(), *(iter1));
+				iter1++;
+				iter2++;
+			}
 		}
-		if (!t2) {
-			return t1;
+		while (iter1 != end()) {
+			tree.push(tree.getRoot(), *(iter1++));
+		}
+		while (iter2 != t.end()) {
+			tree.push(tree.getRoot(), *(iter2++));
 		}
 
-		Node* a = static_merge(t1->right, t2);
-		t1->right = a;
-		return t1;
+		return tree;
 	}
 
-	void merge(Tree& t) {
-		this->root = static_merge(this->root, t.getRoot());
+	Tree composition(Tree& t) {
+		Tree tree;
+		Iterator iter = begin();
+		while (iter != end()) {
+			if (t.search_by_arg(t.getRoot(), (*iter).getValue())) {
+				int a = (*iter).getArg();
+				int b = t.search_by_arg(t.getRoot(), (*iter).getValue())->value.getValue();
+				tree.push(tree.getRoot(), Pair(a, b));
+			}
+			iter++;
+		}
+		return tree;
 	}
-
-
 };
 

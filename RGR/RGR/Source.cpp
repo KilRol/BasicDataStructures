@@ -3,18 +3,21 @@
 using namespace std;
 
 int main() {
-	Tree a;
-	cin >> a;
-	cout << "|A| " << a << endl << endl;
-	Tree b;
-	cin >> b;
-	cout << "|B| " << b << endl << endl;
+	Tree a, b; 
+	cin >> a >> b;
+
+	cout << endl << "|A| "<< a << endl << "|B| " << b << endl << endl;
+
 	Tree c = a.merge(b);
-	cout << "|C| " << c << endl << endl;
-	Tree::postorder(c.getRoot(), 0);
+
+	cout << c << endl << endl;
 
 	Tree d = a.composition(b);
+	Tree v = b.composition(a);
+	cout << "a.composition(b)" << d << endl << endl;
+	cout << "b.composition(a)" << v << endl << endl;
 
-	cout << d;
+	Tree e;
 
+	cout << e << endl;
 }

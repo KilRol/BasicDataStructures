@@ -1,7 +1,6 @@
 #pragma once
 #include <iostream>
 using namespace std;
-
 class Pair
 {
 private:
@@ -217,8 +216,32 @@ public:
 		}
 	};
 
+	Iterator begin() {
+		Iterator it;
+		it.ptr = minimum(this->root);
+		return it;
+	}
+	Iterator end() {
+		Iterator it;
+		it.ptr = nullptr;
+		return it;
+	}
+
 	Tree() {
 		root = nullptr;
+	}
+	Tree(const Tree& t) {
+		root = nullptr;
+
+		Iterator iter;
+		iter.ptr = t.root;
+		iter.ptr = minimum(iter.ptr);
+
+		while (iter.ptr != nullptr) {
+			push(root, *iter);
+			iter++;
+		}
+
 	}
 	~Tree() {
 		destroy_tree(root);
@@ -229,17 +252,6 @@ public:
 		destroy_tree(root->left);
 		destroy_tree(root->right);
 		delete root;
-	}
-
-	Iterator begin() {
-		Iterator it;
-		it.ptr = minimum(this->root);
-		return it;
-	}
-	Iterator end() {
-		Iterator it;
-		it.ptr = nullptr;
-		return it;
 	}
 
 	void push(Node* root, Pair value) {
@@ -283,14 +295,8 @@ public:
 		Iterator iter = begin();
 		int i = 0;
 		for (; i < index && iter != end(); i++, iter++);
-		try {
-			if (i == index) {
-				return *iter;
-			}
-			else throw "out of range";
-		}
-		catch (const char* e) {
-			cout << e << endl;
+		if (i == index) {
+			return *iter;
 		}
 	}
 
@@ -386,4 +392,3 @@ public:
 		return is;
 	}
 };
-

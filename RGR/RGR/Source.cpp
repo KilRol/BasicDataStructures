@@ -11,13 +11,15 @@ int main() {
 	Tree c = a.merge(b);
 
 	cout << c << endl << endl;
+	cout << "At 2 " << c.at(2) << endl << endl;
 
 	Tree d = a.composition(b);
 	Tree v = b.composition(a);
-	cout << "a.composition(b)" << d << endl << endl;
-	cout << "b.composition(a)" << v << endl << endl;
+
+	cout << "A(B)" << d << endl;
+	cout << "B(A)" << v << endl << endl;
 
 	Tree e;
 
-	cout << e << endl;
+	cout << "Empty tree " << e << endl;
 }

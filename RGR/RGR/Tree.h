@@ -1,6 +1,5 @@
 #pragma once
 #include <iostream>
-#include <iomanip>
 using namespace std;
 
 class Pair
@@ -9,14 +8,20 @@ private:
 	int arg;
 	int value;
 public:
-	Pair(int arg = int(), int num2 = int()) {
+	Pair(int arg = int(), int value = int()) {
 		this->arg = arg;
-		this->value = num2;
+		this->value = value;
 	}
 	Pair(const Pair& p) {
 		this->arg = p.arg;
 		this->value = p.value;
 	}
+	Pair& operator=(Pair& p) {
+		this->arg = p.arg;
+		this->value = p.value;
+		return *this;
+	}
+	//Relations
 	bool operator==(Pair& p) {
 		if (this->arg == p.arg) return true;
 		else return false;
@@ -31,11 +36,6 @@ public:
 	bool operator>(Pair& p) {
 		if (this->arg > p.arg) return true;
 		else return false;
-	}
-	Pair& operator=(Pair& p) {
-		this->arg = p.arg;
-		this->value = p.value;
-		return *this;
 	}
 	//Arithmetic operations
 	Pair operator+(Pair& p) {
@@ -82,12 +82,14 @@ public:
 		this->value = this->value / p.value;
 		return *this;
 	}
+	//Getters
 	int getValue() {
 		return this->value;
 	}
 	int getArg() {
 		return this->arg;
 	}
+	//Stream I/O
 	friend ostream& operator<<(ostream& os, const Pair& p) {
 		return os << p.arg << ">" << p.value;
 	}
@@ -120,7 +122,6 @@ private:
 			this->parent = parent;
 		}
 	};
-
 protected:
 	Node* root;
 	static Node*& next(Node*& root) {
@@ -219,9 +220,7 @@ public:
 	Tree() {
 		root = nullptr;
 	}
-	Node*& getRoot() {
-		return this->root;
-	}
+
 	Iterator begin() {
 		Iterator it;
 		it.ptr = minimum(this->root);
@@ -284,24 +283,6 @@ public:
 		}
 	}
 
-	Node*& search_by_arg(Node* root, int arg) {
-		if ((!root) || arg == root->value.getArg()) return root;
-		if (arg < root->value.getArg()) return search_by_arg(root->left, arg);
-		else return search_by_arg(root->right, arg);
-	}
-	int getValue(int arg) {
-		return search_by_arg(getRoot(), arg)->value.getValue();
-	}
-
-	Node*& search_by_value(Node* root, int value) {
-		if ((!root) || value == root->value.getValue()) return root;
-		if (value < root->value.getValue()) return search_by_value(root->left, value);
-		else return search_by_value(root->right, value);
-	}
-	int getInvertable(int value) {
-		return search_by_value(getRoot(), value)->value.getArg();
-	}
-
 	Tree merge(Tree& t) {
 		Tree tree;
 		Iterator iter1 = begin();
@@ -337,7 +318,7 @@ public:
 				int a = (*iter).getArg();
 				int b = search_by_arg(getRoot(), (*iter).getValue())->value.getValue();
 				tree.push(tree.getRoot(), Pair(a, b));
-			}	
+			}
 			iter++;
 		}
 		return tree;
@@ -352,6 +333,30 @@ public:
 		}
 	}
 
+	//Search
+	Node*& search_by_arg(Node* root, int arg) {
+		if ((!root) || arg == root->value.getArg()) return root;
+		if (arg < root->value.getArg()) return search_by_arg(root->left, arg);
+		else return search_by_arg(root->right, arg);
+	}
+	Node*& search_by_value(Node* root, int value) {
+		if ((!root) || value == root->value.getValue()) return root;
+		if (value < root->value.getValue()) return search_by_value(root->left, value);
+		else return search_by_value(root->right, value);
+	}
+
+	//Getters
+	Node*& getRoot() {
+		return this->root;
+	}
+	int getValue(int arg) {
+		return search_by_arg(getRoot(), arg)->value.getValue();
+	}
+	int getInvertable(int value) {
+		return search_by_value(getRoot(), value)->value.getArg();
+	}
+
+	//Stream I/O
 	friend ostream& operator<<(ostream& os, Tree& t) {
 		os << '{';
 		t.prefixTraverse(t.getRoot(), os);

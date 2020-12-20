@@ -124,7 +124,7 @@ private:
 	};
 protected:
 	Node* root;
-	static Node*& next(Node*& root) {
+	static Node* next(Node*& root) {
 		if (root->right) {
 			return minimum(root->right);
 		}
@@ -137,7 +137,7 @@ protected:
 
 		return y;
 	}
-	static Node*& prev(Node*& root) {
+	static Node* prev(Node*& root) {
 		if (root->left) {
 			return maximum(root->left);
 		}
@@ -220,6 +220,16 @@ public:
 	Tree() {
 		root = nullptr;
 	}
+	~Tree() {
+		destroy_tree(root);
+	}
+
+	void destroy_tree(Node* root) {
+		if (!root) return;
+		destroy_tree(root->left);
+		destroy_tree(root->right);
+		delete root;
+	}
 
 	Iterator begin() {
 		Iterator it;
@@ -267,12 +277,13 @@ public:
 		}
 
 	}
-	Pair& at(const int index) {
-		try {
-			Iterator iter = begin();
-			int i = 0;
 
-			for (; i < index && iter != end(); i++, iter++);
+	//Access to elem
+	Pair& at(const int index) {
+		Iterator iter = begin();
+		int i = 0;
+		for (; i < index && iter != end(); i++, iter++);
+		try {
 			if (i == index) {
 				return *iter;
 			}
@@ -334,12 +345,12 @@ public:
 	}
 
 	//Search
-	Node*& search_by_arg(Node* root, int arg) {
+	Node* search_by_arg(Node* root, int arg) {
 		if ((!root) || arg == root->value.getArg()) return root;
 		if (arg < root->value.getArg()) return search_by_arg(root->left, arg);
 		else return search_by_arg(root->right, arg);
 	}
-	Node*& search_by_value(Node* root, int value) {
+	Node* search_by_value(Node* root, int value) {
 		if ((!root) || value == root->value.getValue()) return root;
 		if (value < root->value.getValue()) return search_by_value(root->left, value);
 		else return search_by_value(root->right, value);

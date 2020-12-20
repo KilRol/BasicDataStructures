@@ -21,5 +21,5 @@ int main() {
 
 	Tree e;
 
-	cout << "Empty tree " << e << endl;
+	cout << "Empty tree " << e << endl;	
 }

@@ -20,6 +20,7 @@ public:
 		this->value = p.value;
 		return *this;
 	}
+
 	//Relations
 	bool operator==(Pair& p) {
 		if (this->arg == p.arg) return true;
@@ -36,61 +37,66 @@ public:
 		if (this->arg > p.arg) return true;
 		else return false;
 	}
+
 	//Arithmetic operations
 	Pair operator+(Pair& p) {
 		Pair a(*this);
-		a.arg = a.arg + p.arg;
 		a.value = a.value + p.value;
 		return a;
 	}
 	Pair operator-(Pair& p) {
 		Pair a(*this);
-		a.arg = a.arg - p.arg;
 		a.value = a.value - p.value;
 		return a;
 	}
 	Pair operator*(Pair& p) {
 		Pair a(*this);
-		a.arg = a.arg * p.arg;
 		a.value = a.value * p.value;
 		return a;
 	}
 	Pair operator/(Pair& p) {
 		Pair a(*this);
-		a.arg = a.arg / p.arg;
 		a.value = a.value / p.value;
 		return a;
 	}
 	Pair& operator+=(Pair& p) {
-		this->arg = this->arg + p.arg;
 		this->value = this->value + p.value;
 		return *this;
 	}
 	Pair& operator-=(Pair& p) {
-		this->arg = this->arg - p.arg;
 		this->value = this->value - p.value;
 		return *this;
 	}
 	Pair& operator*=(Pair& p) {
-		this->arg = this->arg * p.arg;
 		this->value = this->value * p.value;
 		return *this;
 	}
 	Pair& operator/=(Pair& p) {
-		this->arg = this->arg / p.arg;
 		this->value = this->value / p.value;
 		return *this;
 	}
+
 	//Getters
-	int getValue() {
+	int get_value() {
 		return this->value;
 	}
-	int getArg() {
+	int get_arg() {
 		return this->arg;
 	}
+
 	//Stream I/O
 	friend ostream& operator<<(ostream& os, const Pair& p) {
-		return os << p.arg << ">" << p.value;
+		try {
+			if (&p != nullptr) {
+				os << p.arg << ">" << p.value;
+			}
+			else throw "Not a Pair";
+		}
+		catch (const char* e) {
+			os << e;
+			return os;
+		}
+		return os;
 	}
 	friend istream& operator>>(istream& is, Pair& p) {
 		char a;
@@ -120,48 +126,62 @@ private:
 			this->right = right;
 			this->parent = parent;
 		}
+		~Node() {
+			delete left;
+			delete right;
+		}
 	};
+
+	//Search
+	Node* search_by_arg(int arg) {
+		Iterator iter;
+		for (iter = begin(); iter != end() && (*iter).get_arg() != arg; iter++);
+		return iter.get_ptr();
+	}
+	Node* search_by_value(int value) {
+		Iterator iter;
+		for (iter = begin(); iter != end() && (*iter).get_value() != value; iter++);
+		return iter.get_ptr();
+	}
+	Node*& getRoot() {
+		return this->root;
+	}
 protected:
 	Node* root;
-	static Node* next(Node*& root) {
-		if (root->right) {
-			return minimum(root->right);
+	static Node* next(Node*& r) {
+		if (r->right) {
+			return minimum(r->right);
 		}
-
-		Node* y = root->parent;
-		while (y && root == y->right) {
-			root = y;
+		Node* y = r->parent;
+		while (y && r == y->right) {
+			r = y;
 			y = y->parent;
 		}
-
 		return y;
 	}
-	static Node* prev(Node*& root) {
-		if (root->left) {
-			return maximum(root->left);
+	static Node* prev(Node*& r) {
+		if (r->left) {
+			return maximum(r->left);
 		}
 
-		Node* y = root->parent;
-		while (y && root == y->left) {
-			root = y;
+		Node* y = r->parent;
+		while (y && r == y->left) {
+			r = y;
 			y = y->parent;
 		}
-
 		return y;
 	}
-	static Node*& minimum(Node*& root) {
-		if (!root->left) {
-			return root;
+	static Node*& minimum(Node*& r) {
+		if (!r->left) {
+			return r;
 		}
-
-		return minimum(root->left);
+		return minimum(r->left);
 	}
-	static Node*& maximum(Node*& root) {
-		if (!root->right) {
-			return root;
+	static Node*& maximum(Node*& r) {
+		if (!r->right) {
+			return r;
 		}
-
-		return minimum(root->right);
+		return maximum(r->right);
 	}
 public:
 	class Iterator {
@@ -197,22 +217,19 @@ public:
 			return *this;
 		}
 		Pair& operator*() {
-			return (*ptr).value;
+			return ptr->value;
 		}
 		Pair* operator->() {
 			return &(ptr->value);
+		}
+		Node* get_ptr() {
+			return ptr;
 		}
 		bool operator!=(const Iterator& iter) {
 			return (iter.ptr != ptr);
 		}
 		bool operator==(const Iterator& iter) {
 			return (iter.ptr == ptr);
-		}
-		bool operator<(const Iterator& iter) {
-			return (iter.ptr < ptr);
-		}
-		bool operator>(const Iterator& iter) {
-			return (iter.ptr > ptr);
 		}
 	};
 
@@ -228,70 +245,84 @@ public:
 	}
 
 	Tree() {
+		cout << "Init tree" << endl;
 		root = nullptr;
 	}
+	//IN_DEV
 	Tree(const Tree& t) {
-		root = nullptr;
-
-		Iterator iter;
-		iter.ptr = t.root;
-		iter.ptr = minimum(iter.ptr);
-
-		while (iter.ptr != nullptr) {
-			push(root, *iter);
-			iter++;
-		}
-
+		cout << "Tree Copy Const" << endl;
+		delete root;
+		copy_tree(t.root);
 	}
 	~Tree() {
-		destroy_tree(root);
-	}
-
-	void destroy_tree(Node* root) {
-		if (!root) return;
-		destroy_tree(root->left);
-		destroy_tree(root->right);
+		cout << "Tree Destruct" << endl;
 		delete root;
 	}
 
-	void push(Node* root, Pair value) {
+	void destroy_tree(Node* r) {
+		delete root;
+	}
+
+	//Legacy
+	void copy_tree(Node* r) {
+		if (!r) return;
+		push(this->root, r->value);
+		copy_tree(r->left);
+		copy_tree(r->right);
+	}
+
+	//IN_DEV
+	Tree& operator=(const Tree& t) {
+		cout << "OPERATOR=" << endl;
+		delete root;
+		root = nullptr;
+		copy_tree(t.root);
+		return *this;
+	}
+
+	void push(Node* r, Pair value) {
 		Node* nd = new Node(value);
-		if (!root) {
+		if (!r) {
 			this->root = nd;
 			return;
 		}
 		try {
-
-			while (root) {
+			while (r) {
 				if (nd->value > root->value) {
-					if (root->right) root = root->right;
+					if (r->right) {
+						r = r->right;
+					}
 					else {
-						nd->parent = root;
-						root->right = nd;
+						nd->parent = r;
+						r->right = nd;
 						break;
 					}
 				}
 				else if (nd->value < root->value) {
-					if (root->left) root = root->left;
+					if (r->left) {
+						r = r->left;
+					}
 					else {
-						nd->parent = root;
-						root->left = nd;
+						nd->parent = r;
+						r->left = nd;
 						break;
 					}
 				}
 				else {
-					throw "Pair with this arg already exist";
+					if (nd->value.get_value() != r->value.get_value())
+						throw "Push Error! Equal arg and different value";
+					break;
 				}
 			}
 		}
 		catch (const char* e) {
 			cout << e << endl;
+			exit(-1);
 		}
-
 	}
 
 	//Access to elem
-	Pair& at(const int index) {
+	Pair& at(int index) {
 		Iterator iter = begin();
 		int i = 0;
 		for (; i < index && iter != end(); i++, iter++);
@@ -299,41 +330,52 @@ public:
 			return *iter;
 		}
 	}
+	Pair& getInvertable(Tree& t, Pair& p) {
+		Node* res = t.search_by_value(p.get_arg());
+		return res->value;
+	}
 
 	Tree merge(Tree& t) {
 		Tree tree;
 		Iterator iter1 = begin();
 		Iterator iter2 = t.begin();
-
-		while (iter1 != end() && iter2 != t.end()) {
-			if ((*iter1) < (*iter2)) {
+		try {
+			while (iter1 != end() && iter2 != t.end()) {
+				if ((*iter1) < (*iter2)) {
+					tree.push(tree.getRoot(), *(iter1++));
+				}
+				else if ((*iter1) > (*iter2)) {
+					tree.push(tree.getRoot(), *(iter2++));
+				}
+				else {
+					if ((*iter1).get_value() == (*iter2).get_value()) {
+						tree.push(tree.getRoot(), *(iter1++));
+						iter2++;
+					}
+					else throw "Merge Error! Equal arg and different value";
+				}
+			}
+			while (iter1 != end()) {
 				tree.push(tree.getRoot(), *(iter1++));
 			}
-			else if ((*iter1) > (*iter2)) {
+			while (iter2 != t.end()) {
 				tree.push(tree.getRoot(), *(iter2++));
 			}
-			else {
-				iter1++;
-				iter2++;
-			}
 		}
-		while (iter1 != end()) {
-			tree.push(tree.getRoot(), *(iter1++));
+		catch (const char* e) {
+			cout << e << endl;
+			tree.destroy_tree(tree.root);
+			return tree;
 		}
-		while (iter2 != t.end()) {
-			tree.push(tree.getRoot(), *(iter2++));
-		}
-
 		return tree;
 	}
-
 	Tree composition(Tree& t) {
 		Tree tree;
 		Iterator iter = t.begin();
 		while (iter != t.end()) {
-			if (search_by_arg(getRoot(), (*iter).getValue())) {
-				int a = (*iter).getArg();
-				int b = search_by_arg(getRoot(), (*iter).getValue())->value.getValue();
+			if (search_by_arg(iter->get_value())) {
+				int a = iter->get_arg();
+				int b = search_by_arg(iter->get_value())->value.get_value();
 				tree.push(tree.getRoot(), Pair(a, b));
 			}
 			iter++;
@@ -341,36 +383,105 @@ public:
 		return tree;
 	}
 
-	void prefixTraverse(Node* root, ostream& os, bool flag = 1) {
-		if (root) {
-			if (flag) os << root->value;
-			else os << ", " << root->value;
-			prefixTraverse(root->left, os, 0);
-			prefixTraverse(root->right, os, 0);
+	void prefixTraverse(Node* r, ostream& os, bool flag = 1) {
+		if (r) {
+			if (flag) os << r->value;
+			else os << ", " << r->value;
+			prefixTraverse(r->left, os, 0);
+			prefixTraverse(r->right, os, 0);
 		}
 	}
 
-	//Search
-	Node* search_by_arg(Node* root, int arg) {
-		if ((!root) || arg == root->value.getArg()) return root;
-		if (arg < root->value.getArg()) return search_by_arg(root->left, arg);
-		else return search_by_arg(root->right, arg);
+	//Relations
+	bool operator==(Tree& t) {
+		Iterator iter1 = begin();
+		Iterator iter2 = t.begin();
+		while (iter1 != end() && iter2 != end()) {
+			if ((*iter1++) != (*iter2++)) return false;
+		}
+		if (iter1 != end() || iter2 != end()) return false;
+		return true;
 	}
-	Node* search_by_value(Node* root, int value) {
-		if ((!root) || value == root->value.getValue()) return root;
-		if (value < root->value.getValue()) return search_by_value(root->left, value);
-		else return search_by_value(root->right, value);
+	bool operator!=(Tree& t) {
+		return !(*this == t);
 	}
 
-	//Getters
-	Node*& getRoot() {
-		return this->root;
+	//Arithmetic operations
+	Tree operator+(Tree& t) {
+		Tree result_tree;
+		Iterator iter = begin();
+		for (iter; iter != end(); iter++)
+		{
+			Pair h = (*iter);
+			try {
+				if (t.search_by_arg((*iter).get_arg())) {
+					h += t.search_by_arg((*iter).get_arg())->value;
+					result_tree.push(result_tree.getRoot(), h);
+				}
+				else throw "Result not defined";
+			}
+			catch (const char* e) {
+				cout << "For elem " << h << " defined only one mapping. " << e << endl;
+			}
+		}
+		return result_tree;
 	}
-	int getValue(int arg) {
-		return search_by_arg(getRoot(), arg)->value.getValue();
+	Tree operator-(Tree& t) {
+		Tree result_tree;
+		Iterator iter = begin();
+		for (iter; iter != end(); iter++)
+		{
+			Pair h = (*iter);
+			try {
+				if (t.search_by_arg((*iter).get_arg())) {
+					h -= t.search_by_arg((*iter).get_arg())->value;
+					result_tree.push(result_tree.getRoot(), h);
+				}
+				else throw "Result not defined";
+			}
+			catch (const char* e) {
+				cout << "For elem " << h << " defined only one mapping. " << e << endl;
+			}
+		}
+		return result_tree;
 	}
-	int getInvertable(int value) {
-		return search_by_value(getRoot(), value)->value.getArg();
+	Tree operator*(Tree& t) {
+		Tree result_tree;
+		Iterator iter = begin();
+		for (iter; iter != end(); iter++)
+		{
+			Pair h = (*iter);
+			try {
+				if (t.search_by_arg((*iter).get_arg())) {
+					h *= t.search_by_arg((*iter).get_arg())->value;
+					result_tree.push(result_tree.getRoot(), h);
+				}
+				else throw "Result not defined";
+			}
+			catch (const char* e) {
+				cout << "For elem " << h << " defined only one mapping. " << e << endl;
+			}
+		}
+		return result_tree;
+	}
+	Tree operator/(Tree& t) {
+		Tree result_tree;
+		Iterator iter = begin();
+		for (iter; iter != end(); iter++)
+		{
+			Pair h = (*iter);
+			try {
+				if (t.search_by_arg((*iter).get_arg())) {
+					h /= t.search_by_arg((*iter).get_arg())->value;
+					result_tree.push(result_tree.getRoot(), h);
+				}
+				else throw "Result not defined";
+			}
+			catch (const char* e) {
+				cout << "For elem " << h << " defined only one mapping. " << e << endl;
+			}
+		}
+		return result_tree;
 	}
 
 	//Stream I/O
@@ -381,6 +492,7 @@ public:
 		return os;
 	}
 	friend istream& operator>>(istream& is, Tree& t) {
+		t.destroy_tree(t.getRoot());
 		Pair a;
 		char b;
 		is >> b;

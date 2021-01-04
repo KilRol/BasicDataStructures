@@ -18,4 +18,11 @@ int main() {
 
 	cout << "A(B) " << d << endl;
 	cout << "B(A) " << v << endl << endl;
+
+	cout << c << endl;
+	
+	Tree y = c.getInvertable();
+	cout << y << endl;
+
+	
 } 

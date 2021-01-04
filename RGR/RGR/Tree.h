@@ -20,6 +20,9 @@ public:
 		this->value = p.value;
 		return *this;
 	}
+	void invert_pair() {
+		swap(arg, value);
+	}
 
 	//Relations
 	bool operator==(Pair& p) {
@@ -146,6 +149,23 @@ private:
 	Node*& getRoot() {
 		return this->root;
 	}
+
+	bool isCorrect() {
+		for (Iterator iter1 = begin(); iter1 != end(); iter1++) {
+			int count = 0;
+			for (Iterator iter2 = iter1; iter2 != end(); iter2++) {
+				if (iter1->get_arg() == iter2->get_arg()) count++;
+			}
+			if (count > 1) return false;
+		}
+		return true;
+	}
+
+	void invert_tree() {
+		for (Iterator iter = begin(); iter != end(); iter++)
+			iter->invert_pair();
+	}
+
 protected:
 	Node* root;
 	static Node* next(Node*& r) {
@@ -323,9 +343,15 @@ public:
 			return *iter;
 		}
 	}
-	Pair& getInvertable(Tree& t, Pair& p) {
-		Node* res = t.search_by_value(p.get_arg());
-		return res->value;
+	Tree getInvertable() {
+		Tree newTree = *this;
+		newTree.invert_tree();
+		Tree result_tree;
+		if (newTree.isCorrect()) {
+			for (Iterator iter = newTree.begin(); iter != newTree.end(); iter++)
+				result_tree.push(result_tree.root, *iter);
+		}
+		return result_tree;
 	}
 
 	Tree merge(Tree& t) {

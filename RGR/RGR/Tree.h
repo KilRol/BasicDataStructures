@@ -152,6 +152,7 @@ protected:
 		if (r->right) {
 			return minimum(r->right);
 		}
+
 		Node* y = r->parent;
 		while (y && r == y->right) {
 			r = y;
@@ -245,25 +246,20 @@ public:
 	}
 
 	Tree() {
-		cout << "Init tree" << endl;
 		root = nullptr;
 	}
-	//IN_DEV
 	Tree(const Tree& t) {
-		cout << "Tree Copy Const" << endl;
-		delete root;
+		root = nullptr;
 		copy_tree(t.root);
 	}
 	~Tree() {
-		cout << "Tree Destruct" << endl;
 		delete root;
 	}
 
 	void destroy_tree(Node* r) {
 		delete root;
+		root = nullptr;
 	}
-
-	//Legacy
 	void copy_tree(Node* r) {
 		if (!r) return;
 		push(this->root, r->value);
@@ -271,11 +267,8 @@ public:
 		copy_tree(r->right);
 	}
 
-	//IN_DEV
 	Tree& operator=(const Tree& t) {
-		cout << "OPERATOR=" << endl;
-		delete root;
-		root = nullptr;
+		destroy_tree(root);
 		copy_tree(t.root);
 		return *this;
 	}
@@ -325,7 +318,7 @@ public:
 	Pair& at(int index) {
 		Iterator iter = begin();
 		int i = 0;
-		for (; i < index && iter != end(); i++, iter++);
+		for (i; i < index && iter != end(); i++, iter++);
 		if (i == index) {
 			return *iter;
 		}
@@ -348,7 +341,7 @@ public:
 					tree.push(tree.getRoot(), *(iter2++));
 				}
 				else {
-					if ((*iter1).get_value() == (*iter2).get_value()) {
+					if (iter1->get_value() == iter2->get_value()) {
 						tree.push(tree.getRoot(), *(iter1++));
 						iter2++;
 					}
@@ -414,8 +407,8 @@ public:
 		{
 			Pair h = (*iter);
 			try {
-				if (t.search_by_arg((*iter).get_arg())) {
-					h += t.search_by_arg((*iter).get_arg())->value;
+				if (t.search_by_arg(iter->get_arg())) {
+					h += t.search_by_arg(iter->get_arg())->value;
 					result_tree.push(result_tree.getRoot(), h);
 				}
 				else throw "Result not defined";
@@ -433,8 +426,8 @@ public:
 		{
 			Pair h = (*iter);
 			try {
-				if (t.search_by_arg((*iter).get_arg())) {
-					h -= t.search_by_arg((*iter).get_arg())->value;
+				if (t.search_by_arg(iter->get_arg())) {
+					h -= t.search_by_arg(iter->get_arg())->value;
 					result_tree.push(result_tree.getRoot(), h);
 				}
 				else throw "Result not defined";
@@ -452,8 +445,8 @@ public:
 		{
 			Pair h = (*iter);
 			try {
-				if (t.search_by_arg((*iter).get_arg())) {
-					h *= t.search_by_arg((*iter).get_arg())->value;
+				if (t.search_by_arg(iter->get_arg())) {
+					h *= t.search_by_arg(iter->get_arg())->value;
 					result_tree.push(result_tree.getRoot(), h);
 				}
 				else throw "Result not defined";
@@ -471,8 +464,8 @@ public:
 		{
 			Pair h = (*iter);
 			try {
-				if (t.search_by_arg((*iter).get_arg())) {
-					h /= t.search_by_arg((*iter).get_arg())->value;
+				if (t.search_by_arg(iter->get_arg())) {
+					h /= t.search_by_arg(iter->get_arg())->value;
 					result_tree.push(result_tree.getRoot(), h);
 				}
 				else throw "Result not defined";

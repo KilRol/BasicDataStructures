@@ -20,9 +20,10 @@ int main() {
 	cout << "B(A) " << v << endl << endl;
 
 	cout << c << endl;
-	
-	Tree y = c.getInvertable();
+	Tree y = c.get_invertable();
 	cout << y << endl;
 
-	
+	Tree t = a + b;
+	cout << t << endl;
+
 } 

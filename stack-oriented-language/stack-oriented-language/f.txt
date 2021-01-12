@@ -1,23 +1,16 @@
-read
-pop x
-push {1>2}
-pop r
-push 1
-pop y
-push y
-push x
->
-ji 20
-push y
-push r
-*
-pop r
-push y
-push 1
-+
-pop y
-jmp 7
-;Vichislenie faktoriala so stranici 9 knigi stekoviy yazik
-push r
+push {1>7, 7>2}
+push 7 
+find
 write
-end
+;Comment
+push {2>7, 7>4, 5>3}
+invert
+write
+push {1>7, 7>2}
+push {2>7, 7>4, 5>3}
+composition
+write
+push {1>7, 7>4}
+push {2>7, 7>4, 5>3}
+merge
+write

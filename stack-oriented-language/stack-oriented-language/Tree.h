@@ -26,19 +26,19 @@ public:
 
 	//Relations
 	bool operator==(Pair& p) {
-		if (this->arg == p.arg) return true;
-		else return false;
+		return this->arg == p.arg;
 	}
 	bool operator!=(Pair& p) {
 		return !(*this == p);
 	}
 	bool operator<(Pair& p) {
-		if (this->arg < p.arg) return true;
-		else return false;
+		return this->arg < p.arg;
 	}
 	bool operator>(Pair& p) {
-		if (this->arg > p.arg) return true;
-		else return false;
+		return this->arg > p.arg;
+	}
+	bool equal(Pair& p) {
+		return this->arg == p.arg && this->value == p.value;
 	}
 
 	//Arithmetic operations
@@ -62,6 +62,11 @@ public:
 		a.value = a.value / p.value;
 		return a;
 	}
+	Pair operator%(Pair& p) {
+		Pair a(*this);
+		a.value = a.value % p.value;
+		return a;
+	}
 	Pair& operator+=(Pair& p) {
 		this->value = this->value + p.value;
 		return *this;
@@ -76,6 +81,10 @@ public:
 	}
 	Pair& operator/=(Pair& p) {
 		this->value = this->value / p.value;
+		return *this;
+	}
+	Pair& operator%=(Pair& p) {
+		this->value = this->value % p.value;
 		return *this;
 	}
 
@@ -146,9 +155,7 @@ private:
 		for (iter = begin(); iter != end() && (*iter).get_value() != value; iter++);
 		return iter.get_ptr();
 	}
-	Node*& getRoot() {
-		return this->root;
-	}
+
 
 	bool isCorrect() {
 		for (Iterator iter1 = begin(); iter1 != end(); iter1++) {
@@ -204,6 +211,9 @@ protected:
 		return maximum(r->right);
 	}
 public:
+	Node*& getRoot() {
+		return this->root;
+	}
 	class Iterator {
 	public:
 		friend class Tree;
@@ -281,6 +291,21 @@ public:
 			}
 		}
 	}
+	Tree(string& str) {
+		for (int i = 1; str[i]; i++)
+		{
+			int arg = 0;
+			int val = 0;
+
+			for (i; str[i] != '>'; i++) {
+				arg = 10 * arg + str[i] - '0';
+			}
+			i++;
+			for (i; str[i] != ',' && str[i] != '}'; i++)
+				val = 10 * val + str[i] - '0';
+			push(getRoot(), Pair(arg, val));
+		}
+	}
 	~Tree() {
 		delete root;
 	}
@@ -354,6 +379,9 @@ public:
 			cout << e << endl;
 			exit(-1);
 		}
+	}
+	int getValue(int arg) {
+		return search_by_arg(root, arg)->value.get_value();
 	}
 
 	//Access to elem
@@ -442,16 +470,24 @@ public:
 	bool operator==(Tree& t) {
 		Iterator iter1 = begin();
 		Iterator iter2 = t.begin();
-		while (iter1 != end() && iter2 != end()) {
+		while (iter1 != end() && iter2 != t.end()) {
 			if ((*iter1++) != (*iter2++)) return false;
 		}
-		if (iter1 != end() || iter2 != end()) return false;
+		if (iter1 != end() || iter2 != t.end()) return false;
 		return true;
 	}
 	bool operator!=(Tree& t) {
 		return !(*this == t);
 	}
-
+	bool equal(Tree& t) {
+		Iterator iter1 = begin();
+		Iterator iter2 = t.begin();
+		while (iter1 != end() && iter2 != t.end()) {
+			if (!(*iter1++).equal(*iter2++)) return false;
+		}
+		if (iter1 != end() || iter2 != t.end()) return false;
+		return true;
+	}
 	//Arithmetic operations
 	Tree operator+(Tree& t) {
 		Tree result_tree;
@@ -530,6 +566,26 @@ public:
 		return result_tree;
 	}
 
+	Tree operator%(Tree& t) {
+		Tree result_tree;
+		Iterator iter = begin();
+		for (iter; iter != end(); iter++)
+		{
+			Pair h = (*iter);
+			try {
+				if (t.search_by_arg(t.root, iter->get_arg())) {
+					h %= t.search_by_arg(t.root, iter->get_arg())->value;
+					result_tree.push(result_tree.getRoot(), h);
+				}
+				else throw "Result not defined";
+			}
+			catch (const char* e) {
+				cout << "For elem " << h << " defined only one mapping. " << e << endl;
+			}
+		}
+		return result_tree;
+	}
+
 	//Stream I/O
 	friend ostream& operator<<(ostream& os, Tree& t) {
 		os << '{';
@@ -539,14 +595,23 @@ public:
 	}
 	friend istream& operator>>(istream& is, Tree& t) {
 		t.destroy_tree(t.getRoot());
-		Pair a;
-		char b;
-		is >> b;
-		do {
-			is >> a;
-			t.push(t.getRoot(), a);
+		try
+		{
+			Pair a;
+			char b;
 			is >> b;
-		} while (b != '}');
+			if (b != '{') throw "Incorrect Input";
+			do {
+				is >> a;
+				t.push(t.getRoot(), a);
+				is >> b;
+			} while (b != '}');
+		}
+		catch (const char* e)
+		{ 
+			is.clear();
+			cout << e << endl;
+		}
 		return is;
 	}
 };

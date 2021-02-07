@@ -1541,8 +1541,7 @@ class Parser
 		stack<Variable> Stack;
 
 		for (int i = 0; list_lexeme[i].lexeme_token_class != END && list_lexeme[i].lexeme_token_class != ENDMARK; i++)
-		{
-
+		{			
 			if (list_lexeme[i].lexeme_token_class == READ)
 			{
 				cout << "Enter 1 to int, 2 to Tree" << endl;
@@ -1748,6 +1747,7 @@ class Parser
 				cout << "Lexeme = Error, Line: " << list_lexeme[i].line << endl;
 				exit(1);
 			}
+			//cout << LexemeTokenClassName[list_lexeme[i].lexeme_token_class] << endl;
 		}
 	}
 

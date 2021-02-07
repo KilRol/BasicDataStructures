@@ -1,16 +1,51 @@
-push {1>7, 7>2}
-push 7 
-find
-write
-;Comment
-push {2>7, 7>4, 5>3}
-invert
-write
-push {1>7, 7>2}
-push {2>7, 7>4, 5>3}
-composition
-write
-push {1>7, 7>4}
-push {2>7, 7>4, 5>3}
-merge
-write
+read
+pop x
+push 0
+pop count 
+push 2
+pop y
+push y
+push x
+>=
+ji 49
+push 1 
+pop z
+push 0
+pop s
+push z 
+push y 
+=
+ji 36
+push y 
+push z
+% 
+pop r
+push r 
+push 0
+!=
+ji 31
+push s
+push z
++
+pop s
+push z
+push 1
++
+pop z
+jmp 15
+push y 
+push s
+!=
+ji 44
+push count 
+push 1
++
+pop count
+push y
+push 1
++
+pop y
+jmp 7
+push count 
+write 
+end

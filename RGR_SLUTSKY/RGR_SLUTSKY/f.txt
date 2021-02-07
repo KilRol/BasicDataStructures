@@ -27,16 +27,14 @@ push <<1;0;1>>
 push <<1;1;1>>
 dotp
 pop y
+push y
+write
 push x
 push y
 shiftl
 pop x
 push x
 write
-push y
-push y
-+
-pop y
 push x
 push y
 shiftr
@@ -48,6 +46,7 @@ push z
 !=
 pop i
 push i
+; No comments
 write
 push x
 push z

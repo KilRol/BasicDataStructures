@@ -15,6 +15,21 @@ private:
 		}
 	};
 
+	void del_head() {
+		Node* cur = head;
+		head = head->next;
+		delete cur;
+	}
+
+	void del_tail() {
+		Node* cur = head;
+		while (cur->next->next) {
+			cur = cur->next;
+		}
+		delete cur->next;
+		cur->next = nullptr;
+	}
+
 	Node* head;
 public:
 
@@ -114,29 +129,35 @@ public:
 			cur->next = nd;
 		}
 	}
-	void del_tail() {
-		Node* cur = head;
-		while (cur->next->next) {
-			cur = cur->next;
+	void push_front(bool a) {
+
+		if (!head) {
+			head = new Node(a);
 		}
-		delete cur->next;
-		cur->next = nullptr;
+		else {
+			Node* nd = new Node(a, head);
+			head = nd;
+		}
 	}
 	BooleanVector& operator<<(int count) {
-		for (int i = 0; i < count; i++)
+		for (int i = 0; i < count; i++) {
 			push_back(false);
+			del_head();
+		}
 		return *this;
 	}
 	BooleanVector& operator>>(int count) {
-		for (int i = 0; i < count; i++)
+		for (int i = 0; i < count; i++) {
+			push_front(false);
 			del_tail();
+		}
 		return *this;
 	}
 	bool isEmpty() {
 		return (head == nullptr) ? true : false;
 	}
 	int dot_product(BooleanVector& v) {
-		int res = false;
+		int res = 0;
 		Node* cur = head;
 		Node* cur_v = v.head;
 

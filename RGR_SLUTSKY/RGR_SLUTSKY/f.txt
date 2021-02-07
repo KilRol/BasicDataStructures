@@ -1,0 +1,56 @@
+push <<1;0;1>>
+push <<1;1;1>>
+concatenation
+pop x
+push x
+write
+push <<1;1;0;1>>
+push <<1;0;0>>
+conjunction
+pop x
+push x
+write
+push <<0;1;1;0;1>>
+push <<1;0;0;0;0;0;0>>
+disjunction
+pop x
+push x
+write
+push x
+push 0
+push 3
+subv
+pop x
+push x
+write
+push <<1;0;1>>
+push <<1;1;1>>
+dotp
+pop y
+push x
+push y
+shiftl
+pop x
+push x
+write
+push y
+push y
++
+pop y
+push x
+push y
+shiftr
+pop z
+push z
+write
+push x
+push z
+!=
+pop i
+push i
+write
+push x
+push z
+=
+write
+end

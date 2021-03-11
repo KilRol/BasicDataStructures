@@ -4,12 +4,6 @@
 #include <fstream>
 using namespace std;
 
-#define REDHB "\033[0;101m"
-#define BWHT "\033[1;37m"
-#define BLKHB "\033[0;100m"
-#define BLUB "\033[44m"
-#define reset "\033[0m"
-
 class Variable {
 private:
 	string name;
@@ -226,15 +220,15 @@ public:
 	}
 };
 
-enum LexemeTokenClass { ARROW_LEFT, ARROW_RIGHT, INT, TREE, CONST, VARIABLE, AR_OP, RELATION, ASSIGNMENT, DECLARE, SET, WHILE, DO, FOR, TO, IF, THEN, ELSE, CIN, COUT, MARK, JUMP, SWITCH, CASE, DEFAULT, BAD, BEGIN, END, COMMENT, SEMICOLON, COMMA, OPEN_BRACKET, CLOSED_BRACKET, COLON, ERROR, ENDMARK, END_OF_FILE };
+enum LexemeTokenClass { AT, COMPOSITION, FIND, INVERT, MERGE, ARROW_LEFT, ARROW_RIGHT, INT, TREE, CONST, VARIABLE, AR_OP, RELATION, ASSIGNMENT, DECLARE, SET, WHILE, DO, FOR, TO, IF, THEN, ELSE, CIN, COUT, MARK, JUMP, SWITCH, CASE, DEFAULT, BAD, BEGIN, END, COMMENT, SEMICOLON, COMMA, OPEN_BRACKET, CLOSED_BRACKET, COLON, ERROR, ENDMARK, END_OF_FILE };
 enum SymbolicTokenClass { Letter, Digit, Ar_Op, Relation, Space, LF, Semicolon, Colon, OpenCurveBracket, ClosedCurveBracket, OpenBracket, ClosedBracket, Comma, Error, EndOfFile };
 enum States {s_A1, s_B1, s_C1, s_C2, s_C3, s_C4, s_D1, s_E1, s_E2, s_E3, s_F1, s_F2, s_F3, s_G1, s_G2, s_G3, s_G4, s_H1, s_I1, s_I2, s_J1, s_K1, s_K2, s_K3, s_K4, s_Exit };
 
-string LexemeTokenClassName[] = { "ARROW_LEFT", "ARROW_RIGHT", "INT", "TREE", "CONST", "VARIABLE", "AR_OP", "RELATION", "ASSIGNMENT", "DECLARE", "SET", "WHILE", "DO", "FOR", "TO", "IF", "THEN", "ELSE", "CIN", "COUT", "MARK", "JUMP", "SWITCH", "CASE", "DEFAULT", "BAD", "BEGIN", "END", "COMMENT", "SEMICOLON", "COMMA", "OPEN_BRACKET", "CLOSED_BRACKET", "COLON","ERROR", "ENDMARK", "END_OF_FILE" };
+string LexemeTokenClassName[] = { "AT", "COMPOSITION", "FIND", "INVERT", "MERGE","ARROW_LEFT", "ARROW_RIGHT", "INT", "TREE", "CONST", "VARIABLE", "AR_OP", "RELATION", "ASSIGNMENT", "DECLARE", "SET", "WHILE", "DO", "FOR", "TO", "IF", "THEN", "ELSE", "CIN", "COUT", "MARK", "JUMP", "SWITCH", "CASE", "DEFAULT", "BAD", "BEGIN", "END", "COMMENT", "SEMICOLON", "COMMA", "OPEN_BRACKET", "CLOSED_BRACKET", "COLON","ERROR", "ENDMARK", "END_OF_FILE" };
 
 const string keywords[] = { "int" , "tree", "while", "for", "declare", "set", "to", "do", "if", "then", "else", "cin", "cout", "jump", "switch", "case", "default", "end", "bad", "begin" };
 
-int init_vector[] = { 0, 1, 7, 15, 27, 32, 0, 0, 34, 37, 0, 0, 0, 0, 0, 0, 0, 0, 40, 47, 0, 0, 54, 0, 0, 0 };
+int init_vector[] = { 1, 2, 8, 25, 37, 42, 0, 0, 47, 54, 0, 0, 57, 0, 0, 0, 0, 0, 61, 68, 0, 0, 75, 0, 0, 0 };
 
 struct SymbolicToken
 {
@@ -694,6 +688,26 @@ class Parser {
 		lexeme_class = INT;
 		return s_C1;
 	}
+	int C1_at() {
+		lexeme_class = AT;
+		return s_C1;
+	}
+	int C1_composition() {
+		lexeme_class = COMPOSITION;
+		return s_C1;
+	}
+	int C1_find() {
+		lexeme_class = FIND;
+		return s_C1;
+	}
+	int C1_invert() {
+		lexeme_class = INVERT;
+		return s_C1;
+	}
+	int C1_merge() {
+		lexeme_class = MERGE;
+		return s_C1;
+	}
 	int C1_closedBracekt() {
 		lexeme_class = CLOSED_BRACKET;
 		value = s.value;
@@ -912,7 +926,7 @@ class Parser {
 	int Error1() {
 		lexeme_class = ERROR;
 		CreateLexeme();
-		cout << REDHB << BWHT << "Error line: " << line << reset << endl;
+		cout << "Error line: " << line << endl;
 		return s_J1;
 	}
 	int Exit1()
@@ -979,87 +993,113 @@ public:
 
 		for (int i = 0; i < 400; i++) table_search[i].f = &Parser::B1b;
 
+		//at
+		table_search[1].letter = 't';	table_search[1].f = &Parser::C1_at;
 		//bad
-		table_search[1].letter = 'a';												table_search[1].alt = 3;
-		table_search[2].letter = 'd';	table_search[2].f = &Parser::C1_bad;
+		table_search[2].letter = 'a';												table_search[2].alt = 4;
+		table_search[3].letter = 'd';	table_search[3].f = &Parser::C1_bad;
 		//begin
-		table_search[3].letter = 'e';
-		table_search[4].letter = 'g';
-		table_search[5].letter = 'i';
-		table_search[6].letter = 'n';	table_search[6].f = &Parser::C1_begin;
+		table_search[4].letter = 'e';
+		table_search[5].letter = 'g';
+		table_search[6].letter = 'i';
+		table_search[7].letter = 'n';	table_search[7].f = &Parser::C1_begin;
 		//case
-		table_search[7].letter = 'a';												table_search[7].alt = 10;
-		table_search[8].letter = 's';
-		table_search[9].letter = 'e';	table_search[9].f = &Parser::C1_case;
+		table_search[8].letter = 'a';												table_search[8].alt = 11;
+		table_search[9].letter = 's';
+		table_search[10].letter = 'e';	table_search[10].f = &Parser::C1_case;
 		//cin
-		table_search[10].letter = 'i';												table_search[10].alt = 12;
-		table_search[11].letter = 'n';	table_search[11].f = &Parser::C1_cin;
+		table_search[11].letter = 'i';												table_search[11].alt = 13;
+		table_search[12].letter = 'n';	table_search[12].f = &Parser::C1_cin;
+		//composition
+		table_search[13].letter = 'o';
+		table_search[14].letter = 'm';												table_search[14].alt = 23;
+		table_search[15].letter = 'p';
+		table_search[16].letter = 'o';
+		table_search[17].letter = 's';
+		table_search[18].letter = 'i';
+		table_search[19].letter = 't';
+		table_search[20].letter = 'i';
+		table_search[21].letter = 'o';
+		table_search[22].letter = 'n';	table_search[22].f = &Parser::C1_composition;
 		//cout
-		table_search[12].letter = 'o';
-		table_search[13].letter = 'u';
-		table_search[14].letter = 't';	table_search[14].f = &Parser::C1_cout;
-		//declare
-		table_search[15].letter = 'e';												table_search[15].alt = 26;
-		table_search[16].letter = 'c';												table_search[16].alt = 21;
-		table_search[17].letter = 'l';
-		table_search[18].letter = 'a';
-		table_search[19].letter = 'r';
-		table_search[20].letter = 'e';	table_search[20].f = &Parser::C1_declare;
-		//default
-		table_search[21].letter = 'f';
-		table_search[22].letter = 'a';
 		table_search[23].letter = 'u';
-		table_search[24].letter = 'l';
-		table_search[25].letter = 't';	table_search[25].f = &Parser::C1_default;
+		table_search[24].letter = 't';	table_search[24].f = &Parser::C1_cout;
+		//declare
+		table_search[25].letter = 'e';												table_search[25].alt = 36;
+		table_search[26].letter = 'c';												table_search[26].alt = 31;
+		table_search[27].letter = 'l';
+		table_search[28].letter = 'a';
+		table_search[29].letter = 'r';
+		table_search[30].letter = 'e';	table_search[30].f = &Parser::C1_declare;
+		//default
+		table_search[31].letter = 'f';
+		table_search[32].letter = 'a';
+		table_search[33].letter = 'u';
+		table_search[34].letter = 'l';
+		table_search[35].letter = 't';	table_search[35].f = &Parser::C1_default;
 		//do
-		table_search[26].letter = 'o';	table_search[26].f = &Parser::C1_do;
+		table_search[36].letter = 'o';	table_search[36].f = &Parser::C1_do;
 		//else
-		table_search[27].letter = 'l';												table_search[27].alt = 30;
-		table_search[28].letter = 's';
-		table_search[29].letter = 'e';	table_search[29].f = &Parser::C1_else;
+		table_search[37].letter = 'l';												table_search[37].alt = 40;
+		table_search[38].letter = 's';
+		table_search[39].letter = 'e';	table_search[39].f = &Parser::C1_else;
 		//end
-		table_search[30].letter = 'n';
-		table_search[31].letter = 'd';	table_search[31].f = &Parser::C1_end;
+		table_search[40].letter = 'n';
+		table_search[41].letter = 'd';	table_search[41].f = &Parser::C1_end;
+		//find
+		table_search[42].letter = 'i';												table_search[42].alt = 45;
+		table_search[43].letter = 'n';
+		table_search[44].letter = 'd';	table_search[44].f = &Parser::C1_find;
 		//for
-		table_search[32].letter = 'o';
-		table_search[33].letter = 'r';	table_search[33].f = &Parser::C1_for;
+		table_search[45].letter = 'o';
+		table_search[46].letter = 'r';	table_search[46].f = &Parser::C1_for;
 		//if
-		table_search[34].letter = 'f';	table_search[34].f = &Parser::C1_if;			table_search[34].alt = 35;
+		table_search[47].letter = 'f';	table_search[47].f = &Parser::C1_if;		table_search[47].alt = 48;
 		//int
-		table_search[35].letter = 'n';
-		table_search[36].letter = 't';	table_search[36].f = &Parser::C1_int;
+		table_search[48].letter = 'n';
+		table_search[49].letter = 't';	table_search[49].f = &Parser::C1_int;		table_search[49].alt = 50;
+		//invert
+		table_search[50].letter = 'v'; 
+		table_search[51].letter = 'e';
+		table_search[52].letter = 'r';
+		table_search[53].letter = 't';	table_search[53].f = &Parser::C1_invert;
 		//jump
-		table_search[37].letter = 'u';
-		table_search[38].letter = 'm';
-		table_search[39].letter = 'p';	table_search[39].f = &Parser::C3_jump;
+		table_search[54].letter = 'u';
+		table_search[55].letter = 'm';
+		table_search[56].letter = 'p';	table_search[56].f = &Parser::C3_jump;
+		//merge
+		table_search[57].letter = 'e';
+		table_search[58].letter = 'r';
+		table_search[59].letter = 'g';
+		table_search[60].letter = 'e'; table_search[60].f = &Parser::C1_merge;
 		//set
-		table_search[40].letter = 'e';												table_search[40].alt = 42;
-		table_search[41].letter = 't';	table_search[41].f = &Parser::C1_set;
+		table_search[61].letter = 'e';												table_search[61].alt = 63;
+		table_search[62].letter = 't';	table_search[62].f = &Parser::C1_set;
 		//switch
-		table_search[42].letter = 'w';
-		table_search[43].letter = 'i';
-		table_search[44].letter = 't';
-		table_search[45].letter = 'c';
-		table_search[46].letter = 'h';	table_search[46].f = &Parser::C1_switch;
+		table_search[63].letter = 'w';
+		table_search[64].letter = 'i';
+		table_search[65].letter = 't';
+		table_search[66].letter = 'c';
+		table_search[67].letter = 'h';	table_search[67].f = &Parser::C1_switch;
 		//then
-		table_search[47].letter = 'h';												table_search[47].alt = 50;
-		table_search[48].letter = 'e';
-		table_search[49].letter = 'n';	table_search[49].f = &Parser::C1_then;
+		table_search[68].letter = 'h';												table_search[68].alt = 71;
+		table_search[69].letter = 'e';
+		table_search[70].letter = 'n';	table_search[70].f = &Parser::C1_then;
 		//to
-		table_search[50].letter = 'o';	table_search[50].f = &Parser::C1_to;		table_search[50].alt = 51;
+		table_search[71].letter = 'o';	table_search[71].f = &Parser::C1_to;		table_search[71].alt = 72;
 		//tree
-		table_search[51].letter = 'r'; 
-		table_search[52].letter = 'e';
-		table_search[53].letter = 'e';	table_search[53].f = &Parser::C1_tree;
+		table_search[72].letter = 'r'; 
+		table_search[73].letter = 'e';
+		table_search[74].letter = 'e';	table_search[74].f = &Parser::C1_tree;
 		//while
-		table_search[54].letter = 'h';
-		table_search[55].letter = 'i';
-		table_search[56].letter = 'l';
-		table_search[57].letter = 'e';	table_search[57].f = &Parser::C1_while;
+		table_search[75].letter = 'h';
+		table_search[76].letter = 'i';
+		table_search[77].letter = 'l';
+		table_search[78].letter = 'e';	table_search[78].f = &Parser::C1_while;
 	}
 
 	void printLists() {
-		cout << BLUB << BWHT << "table_const" << reset << BLKHB << "\nAdress\t\t\tName" << reset << endl;
+		cout << "table_const\nAdress\t\t\tName" << endl;
 		for (auto i : table_const) {
 			cout << i << "\t\t";
 			if (i->getType() == 0) {
@@ -1070,11 +1110,11 @@ public:
 			}
 		}
 
-		cout << endl << BLUB << BWHT << "Variable table " << reset << BLKHB << "\nAdress\t\t\tName" << reset << endl;
+		cout << endl << "Variable table\nAdress\t\t\tName" << endl;
 		for (auto i : table_name)
 			cout << i << "\t\t" << i->getName() << endl;
 
-		cout << endl << BLUB << BWHT << "Label table" << reset << BLKHB << "\nAdress\t\t\tName" << reset << endl;
+		cout << endl << "Label table\nAdress\t\t\tName" << endl;
 		for (auto i : table_mark)
 			cout << &i << "\t\t" << i << endl;
 

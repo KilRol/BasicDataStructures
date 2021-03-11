@@ -14,3 +14,4 @@ if abd == cs then set toe to 5 ; ->
 jump 1aaa
 jump a1
 jump bs
+composition {1>4} at B merge F ; , G invert R find 65

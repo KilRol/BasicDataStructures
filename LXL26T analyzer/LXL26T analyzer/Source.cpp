@@ -584,6 +584,25 @@ class Parser {
 		CreateLexeme();
 		return s_A1;
 	}
+	int A1e()
+	{
+		if (rel == '!') return Error1();
+		else if (rel == '<')
+		{
+			rel = 3;
+		}
+		else if (rel == '>')
+		{
+			rel = 4;
+		}
+		lexeme_class = RELATION;
+		if (rel == '=') {
+			lexeme_class = ASSIGNMENT;
+		}
+		CreateLexeme();
+		line++;
+		return s_A1;
+	}
 	int A1_const()
 	{
 		AddConst();
@@ -824,6 +843,7 @@ class Parser {
 		return s_C4;
 	}
 	int D1a() {
+		lexeme_class = RELATION;
 		rel = s.value;
 		return s_D1;
 	}
@@ -979,7 +999,7 @@ public:
 																						table[s_C2][Ar_Op] = &Parser::I1a;			table[s_C2][Relation] = &Parser::C1_ArrowR;		table[s_C2][Space] = &Parser::A1c;			table[s_C2][LF] = &Parser::A1b;																																																																																																					table[s_C2][EndOfFile] = &Parser::Exit2;
 		table[s_C3][Letter] = &Parser::C4a;																																			table[s_C3][Space] = &Parser::C3;
 		table[s_C4][Letter] = &Parser::C4a;		table[s_C4][Digit] = &Parser::C4a;																									table[s_C4][Space] = &Parser::A1c;			table[s_C4][LF] = &Parser::A1b;																																																																																																					table[s_C4][EndOfFile] = &Parser::Exit2;
-																						table[s_D1][Ar_Op] = &Parser::C1_ArrowL;	table[s_D1][Relation] = &Parser::C1c;			table[s_D1][Space] = &Parser::A1d;			table[s_D1][LF] = &Parser::A1d;																																																																																																					table[s_D1][EndOfFile] = &Parser::Exit2;
+																						table[s_D1][Ar_Op] = &Parser::C1_ArrowL;	table[s_D1][Relation] = &Parser::C1c;			table[s_D1][Space] = &Parser::A1d;			table[s_D1][LF] = &Parser::A1e;																																																																																																					table[s_D1][EndOfFile] = &Parser::Exit2;
 		table[s_E1][Letter] = &Parser::E2a;																																			table[s_E1][Space] = &Parser::A1c;			table[s_E1][LF] = &Parser::A1b;																																																																																																					table[s_E1][EndOfFile] = &Parser::Exit2;
 		table[s_E2][Letter] = &Parser::E2b;		table[s_E2][Digit] = &Parser::E2b;																									table[s_E2][Space] = &Parser::A1_mark;		table[s_E2][LF] = &Parser::A1_markP;	table[s_E2][EndOfFile] = &Parser::Exit5;
 		table[s_F1][Letter] = &Parser::F1b;		table[s_F1][Digit] = &Parser::F1b;																									table[s_F1][Space] = &Parser::A1_var;		table[s_F1][LF] = &Parser::A1_varP;																																																																																																				table[s_F1][EndOfFile] = &Parser::Exit4;

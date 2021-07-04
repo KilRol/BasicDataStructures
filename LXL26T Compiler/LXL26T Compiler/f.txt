@@ -1,0 +1,3 @@
+declare A int , B tree ;
+set A to 2 ; 
+set B to {1>2} ;

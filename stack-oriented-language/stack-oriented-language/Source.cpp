@@ -1,8 +1,6 @@
 #include <iostream>
-#include <fstream>
-#include <string>
 #include <vector>
-#include <stack>
+#include <fstream>
 using namespace std;
 
 class Pair
@@ -296,6 +294,8 @@ public:
 		}
 	}
 	Tree(string& str) {
+		root = nullptr;
+		if (str[1] == '}') return;
 		for (int i = 1; str[i]; i++)
 		{
 			int arg = 0;
@@ -381,7 +381,7 @@ public:
 		}
 		catch (const char* e) {
 			cout << e << endl;
-			exit(-1);
+			destroy_tree(root);
 		}
 	}
 	int getValue(int arg) {
@@ -620,53 +620,6 @@ public:
 	}
 };
 
-enum LexemeTokenClass { PUSH, POP, AR_OP, RELATION, JMP, JI, READ, WRITE, END, COMMENT, ERROR, ENDMARK, FIND, COMPOSITION, INVERT, MERGE };
-enum SymbolicTokenClass { Letter, Digit, Ar_Op, Relation, Space, LF, Semicolon, Error, EndOfFile, Open_Brace, Closed_Brace, Comma };
-enum States { s_A1, s_A2, s_B1, s_C1, s_D1, s_E1, s_E2, s_E3, s_F1, s_F2, s_F3, s_G1, s_H1, s_I1, s_I2, s_J1, s_K1, s_K2, s_K3, s_K4, s_Exit };
-
-string LexemeTokenClassName[] = { "PUSH", "POP", "AR_OP", "RELATION", "JMP", "JI", "READ", "WRITE", "END", "COMMENT", "ERROR", "ENDMARK", "FIND", "COMPOSITION", "INVERT", "MERGE" };
-
-const string keywords[] = { "end", "ji", "jmp", "pop", "push", "read", "write", "find", "composition", "invert", "merge" };
-
-int init_vector[] = { 0, 0, 21, 0, 1, 18, 0, 0, 31, 3, 0, 0, 36, 0, 0, 6, 0, 11, 0, 0, 0, 0, 14, 0, 0, 0 };
-
-struct SymbolicToken
-{
-	SymbolicTokenClass symbolic_token_class;
-	int value;
-};
-
-struct LexemeToken
-{
-	LexemeTokenClass lexeme_token_class;
-	int line;
-	void* value;
-	friend ostream& operator<<(ostream& os, const LexemeToken& lex)
-	{
-		cout << LexemeTokenClassName[lex.lexeme_token_class];
-		if (lex.lexeme_token_class == PUSH || lex.lexeme_token_class == POP)
-		{
-			cout << '\t' << lex.value;
-		}
-		else if (lex.lexeme_token_class == AR_OP)
-		{
-			cout << '\t' << *((char*)(lex.value));
-		}
-		else if (lex.lexeme_token_class == RELATION)
-		{
-			cout << '\t' << (*(int*)(lex.value)) - 1;
-		}
-		else if (lex.lexeme_token_class == JMP || lex.lexeme_token_class == JI)
-		{
-			cout << '\t' << *((int*)(lex.value));
-		}
-		else {
-			cout << '\t' << "<empty>\t\t";
-		}
-		cout << '\t' << lex.line;
-		return os;
-	}
-};
 
 class Variable {
 private:
@@ -694,13 +647,13 @@ public:
 		type = -1;
 		value = nullptr;
 	}
-	Variable(string name, Tree value, int type) 
+	Variable(string name, Tree value, int type)
 	{
 		this->name = name;
 		this->value = new Tree(value);
 		this->type = type;
 	}
-	Variable(string name, int value, int type) 
+	Variable(string name, int value, int type)
 	{
 		this->name = name;
 		this->value = new int(value);
@@ -719,20 +672,9 @@ public:
 			value = new Tree(*(Tree*)(v.value));
 		}
 	}
-	~Variable()
-	{
-		if (value)
-		{
-			delete value;
-		}
-	}
 	//Operators
 	Variable& operator=(Variable var)
 	{
-		if (value)
-		{
-			delete value;
-		}
 		if (var.type == 0)
 		{
 			value = new int(*(int*)(var.value));
@@ -829,7 +771,7 @@ public:
 		}
 		if (type == 0)
 		{
-			return *(int*)value > *(int*)(var.value);
+			return *(int*)value > * (int*)(var.value);
 		}
 		else if (type == 1)
 		{
@@ -895,26 +837,100 @@ public:
 	}
 };
 
+enum LexemeTokenClass { AT, COMPOSITION, FIND, INVERT, MERGE, ARROW_LEFT, ARROW_RIGHT, INT, TREE, CONST, VARIABLE, AR_OP, RELATION, ASSIGNMENT, DECLARE, SET, WHILE, DO, FOR, TO, IF, THEN, ELSE, CIN, COUT, MARK, JUMP, SWITCH, CASE, DEFAULT, BAD, BEGIN, END, COMMENT, SEMICOLON, COMMA, OPEN_BRACKET, CLOSED_BRACKET, COLON, ERROR, ENDMARK, END_OF_FILE };
+enum SymbolicTokenClass { Letter, Digit, Ar_Op, Relation, Space, LF, Semicolon, Colon, OpenCurveBracket, ClosedCurveBracket, OpenBracket, ClosedBracket, Comma, Error, EndOfFile };
+enum States { s_A1, s_B1, s_C1, s_C2, s_C3, s_C4, s_D1, s_E1, s_E2, s_E3, s_F1, s_F2, s_F3, s_G1, s_G2, s_G3, s_G4, s_H1, s_I1, s_I2, s_J1, s_K1, s_K2, s_K3, s_K4, s_Exit };
+
+string LexemeTokenClassName[] = { "AT", "COMPOSITION", "FIND", "INVERT", "MERGE","ARROW_LEFT", "ARROW_RIGHT", "INT", "TREE", "CONST", "VARIABLE", "AR_OP", "RELATION", "ASSIGNMENT", "DECLARE", "SET", "WHILE", "DO", "FOR", "TO", "IF", "THEN", "ELSE", "CIN", "COUT", "MARK", "JUMP", "SWITCH", "CASE", "DEFAULT", "BAD", "BEGIN", "END", "COMMENT", "SEMICOLON", "COMMA", "OPEN_BRACKET", "CLOSED_BRACKET", "COLON","ERROR", "ENDMARK", "END_OF_FILE" };
+
+const string keywords[] = { "int" , "tree", "while", "for", "declare", "set", "to", "do", "if", "then", "else", "cin", "cout", "jump", "switch", "case", "default", "end", "bad", "begin" };
+
+int init_vector[] = { 1, 2, 8, 25, 37, 42, 0, 0, 47, 54, 0, 0, 57, 0, 0, 0, 0, 0, 61, 68, 0, 0, 75, 0, 0, 0 };
+
+struct SymbolicToken
+{
+	SymbolicTokenClass symbolic_token_class;
+	int value;
+};
+
+struct LexemeToken
+{
+	LexemeTokenClass lexeme_token_class;
+	int line;
+	void* value;
+	friend ostream& operator<<(ostream& os, const LexemeToken& lex)
+	{
+
+		cout << "  " << lex.line << "\t" << LexemeTokenClassName[lex.lexeme_token_class];
+		if (lex.lexeme_token_class == AR_OP ) {
+			cout << "\t\t\t\t\t\t" << *(char*)lex.value; 
+		}
+		if (lex.lexeme_token_class == ASSIGNMENT) {
+			cout << "\t\t\t\t\t" << *(char*)lex.value;
+		}
+		else if (lex.lexeme_token_class == RELATION) {
+			cout << "\t\t\t";
+			switch (*(int*)lex.value) {
+			case 1:
+				cout << "\t\t==";
+				break;
+			case 2:
+				cout << "\t\t!=";
+				break;
+			case 3:
+				cout << "\t\t<";
+				break;
+			case 4:
+				cout << "\t\t>";
+				break;
+			case 5:
+				cout << "\t\t<=";
+				break;
+			case 6:
+				cout << "\t\t>=";
+				break;
+			}
+		}
+		else if (lex.lexeme_token_class == VARIABLE) {
+			cout << "\t\t"  << lex.value << "\t\t" << ((Variable*)lex.value)->getName();
+		}
+		else if (lex.lexeme_token_class == MARK) {
+			cout << "\t\t\t" << lex.value << "\t\t" << (*(string*)lex.value);
+		}
+		else if (lex.lexeme_token_class == CONST) {
+			if (((Variable*)lex.value)->getType() == 0)
+				cout << "\t\t\t" << lex.value << "\t\t" << *(int*)(((Variable*)lex.value)->getValue()) ;
+			else 
+				cout << "\t\t\t" << lex.value << "\t\t" << *(Tree*)(((Variable*)lex.value)->getValue());
+		}
+		else if (lex.lexeme_token_class == JUMP) { 
+			cout << "\t\t\t\t\t\t" << *(string*)lex.value;
+		}
+
+		return os;
+	}
+};
+
 vector<Variable*> table_const;
 vector<Variable*> table_name;
+vector<string*> table_mark;
 vector<LexemeToken> list_lexeme;
 
-const int state_number = 23;
-const int class_number = 11;
+const int state_number = 100;
+const int class_number = 100;
 
-class Parser
-{
-	SymbolicToken s;                    // Символьная лексема
+class Parser {
+	SymbolicToken s;
 
-	LexemeTokenClass lexeme_class;      // Регистр класса
-	void* ptr;                          // Регистр указателя
-	int num;                            // Регистр числа
-	int rel;                            // Регистр отношения
-	string name;                        // Регистр имени
-	int pos;                            // Регистр обнаружения
-	int value;                          // Регистр значение
-	int line = 1;                       // Регистр строки
-	string tree;						// Регистр дерева
+	LexemeTokenClass lexeme_class;
+	void* ptr;
+	int num;
+	int rel;
+	string name;
+	int pos;
+	int value;
+	int line = 1;
+	string tree;
 	bool flag_const;
 
 	typedef int (Parser::* function_pointer)();
@@ -927,7 +943,7 @@ class Parser
 		function_pointer f;
 	};
 
-	SearchTableClass table_search[40];
+	SearchTableClass table_search[400];
 
 	static SymbolicToken transliterator(int ch)
 	{
@@ -963,6 +979,11 @@ class Parser
 			s.symbolic_token_class = LF;
 			s.value = ch;
 		}
+		else if (ch == ':')
+		{
+			s.symbolic_token_class = Colon;
+			s.value = ch;
+		}
 		else if (ch == ';')
 		{
 			s.symbolic_token_class = Semicolon;
@@ -970,12 +991,22 @@ class Parser
 		}
 		else if (ch == '{')
 		{
-			s.symbolic_token_class = Open_Brace;
+			s.symbolic_token_class = OpenCurveBracket;
 			s.value = ch;
 		}
 		else if (ch == '}')
 		{
-			s.symbolic_token_class = Closed_Brace;
+			s.symbolic_token_class = ClosedCurveBracket;
+			s.value = ch;
+		}
+		else if (ch == '(')
+		{
+			s.symbolic_token_class = OpenBracket;
+			s.value = ch;
+		}
+		else if (ch == ')')
+		{
+			s.symbolic_token_class = ClosedBracket;
 			s.value = ch;
 		}
 		else if (ch == ',')
@@ -1000,20 +1031,10 @@ class Parser
 		LexemeToken lexeme_token;
 		lexeme_token.lexeme_token_class = lexeme_class;
 		lexeme_token.line = line;
-		lexeme_token.value = ptr;
-		if (lexeme_class == PUSH)
-		{
-			lexeme_token.value = ptr;
-		}
-		else if (lexeme_class == POP)
-		{
-			lexeme_token.value = ptr;
-		}
-		else if (lexeme_class == AR_OP)
-		{
-			int* token_ar_op = new int;
-			*token_ar_op = value;
-			lexeme_token.value = token_ar_op;
+
+		if (lexeme_class == AR_OP || lexeme_class == COLON || lexeme_class == SEMICOLON || lexeme_class == COMMA || lexeme_class == OPEN_BRACKET || lexeme_class == CLOSED_BRACKET) {
+			int* a = new int(value);
+			lexeme_token.value = a;
 		}
 		else if (lexeme_class == RELATION)
 		{
@@ -1021,15 +1042,20 @@ class Parser
 			*token_rel = rel;
 			lexeme_token.value = token_rel;
 		}
-		else if (lexeme_class == JMP || lexeme_class == JI)
+		else if (lexeme_class == ASSIGNMENT)
 		{
-			int* token_l = new int;
-			*token_l = num;
-			lexeme_token.value = token_l;
+			int* token_rel = new int('=');
+			lexeme_token.value = token_rel;
+		}
+		else if (lexeme_class == VARIABLE || lexeme_class == CONST || lexeme_class == MARK) {
+			lexeme_token.value = ptr;
+		}
+		else if (lexeme_class == JUMP) {
+			lexeme_token.value = new string(name);
 		}
 		list_lexeme.push_back(lexeme_token);
-	}
 
+	}
 	int AddVariable()
 	{
 		for (string s : keywords)
@@ -1051,8 +1077,7 @@ class Parser
 
 	void AddConst()
 	{
-		if (flag_const == 0) return;
-		if (tree.empty()) 
+		if (tree.empty())
 		{
 			for (Variable* i : table_const)
 			{
@@ -1073,25 +1098,39 @@ class Parser
 			for (Variable* i : table_const)
 			{
 				if (i->getType() != 1) continue;
-				if (h.equal(*(Tree*)(i->getValue())))
-				{
-					ptr = i;
-					return;
-				}
+				if ((*(Tree*)(i->getValue())).getRoot())
+					if (h.equal(*(Tree*)(i->getValue())))
+					{
+						ptr = i;
+						return;
+					}
 			}
 			table_const.push_back(new Variable("", h, 1));
 			ptr = table_const[table_const.size() - 1];
 		}
 	}
 
+	int AddMark() {
+		for (string s : keywords)
+		{
+			if (s == name) return Error1();
+		}
+		for (string* i : table_mark)
+		{
+			if (name == *i)
+			{
+				ptr = i;
+				return 0;
+			}
+		}
+		table_mark.push_back(new string(name));
+		ptr = table_mark[table_mark.size() - 1];
+		return 0;
+	}
+
 	int A1()
 	{
 		return s_A1;
-	}
-
-	int A2()
-	{
-		return s_A2;
 	}
 
 	int B1()
@@ -1102,6 +1141,18 @@ class Parser
 	int C1()
 	{
 		return s_C1;
+	}
+	int C2()
+	{
+		return s_C1;
+	}
+	int C3()
+	{
+		return s_C3;
+	}
+	int C4()
+	{
+		return s_C4;
 	}
 
 	int D1()
@@ -1123,12 +1174,10 @@ class Parser
 	{
 		return s_E3;
 	}
-
 	int F1()
 	{
 		return s_F1;
 	}
-
 	int F2()
 	{
 		return s_F2;
@@ -1142,6 +1191,18 @@ class Parser
 	int G1()
 	{
 		return s_G1;
+	}
+	int G2()
+	{
+		return s_G2;
+	}
+	int G3()
+	{
+		return s_G3;
+	}
+	int G4()
+	{
+		return s_G4;
 	}
 
 	int H1()
@@ -1163,72 +1224,24 @@ class Parser
 	{
 		return s_J1;
 	}
-
-	int K1()
-	{
-		return s_K1;
-	}
-	int K2()
-	{
-		return s_K2;
-	}
-	int K3()
-	{
-		return s_K3;
-	}
-	int K4()
-	{
-		return s_K4;
-	}
-	int Error1()
-	{
-		lexeme_class = ERROR;
-		CreateLexeme();
-		cout << "Error line: " << line << endl;
-		return s_J1;
-	}
 	int A1a()
 	{
-		CreateLexeme();
 		line++;
 		return s_A1;
 	}
 	int A1b()
 	{
+		CreateLexeme();
 		line++;
 		return s_A1;
 	}
-	int A2a()
-	{
-		line++;
-		return s_A2;
-	}
-	int A2b()
-	{
+	int A1c() {
 		CreateLexeme();
-		line++;
-		return s_A2;
+		return s_A1;
 	}
-	int A2c() {
-		AddConst();
-		CreateLexeme();
-		line++;
-		return s_A2;
-	}
-	int A2d()
-	{
-		AddVariable();
-		CreateLexeme();
-		line++;
-		return s_A2;
-	}
-	int A2e()
+	int A1d()
 	{
 		if (rel == '!') return Error1();
-		if (rel == '=')
-		{
-			rel = 1;
-		}
 		else if (rel == '<')
 		{
 			rel = 3;
@@ -1237,102 +1250,105 @@ class Parser
 		{
 			rel = 4;
 		}
+		lexeme_class = RELATION;
+		if (rel == '=') {
+			lexeme_class = ASSIGNMENT;
+		}
 		CreateLexeme();
-		line++;
-		return s_A2;
+		return s_A1;
 	}
-	int A2f()
+	int A1e()
 	{
-		lexeme_class = ERROR;
+		if (rel == '!') return Error1();
+		else if (rel == '<')
+		{
+			rel = 3;
+		}
+		else if (rel == '>')
+		{
+			rel = 4;
+		}
+		lexeme_class = RELATION;
+		if (rel == '=') {
+			lexeme_class = ASSIGNMENT;
+		}
 		CreateLexeme();
 		line++;
-		return s_A2;
+		return s_A1;
+	}
+	int A1_const()
+	{
+		AddConst();
+		CreateLexeme();
+		return s_A1;
+	}
+	int A1_constP()
+	{
+		AddConst();
+		CreateLexeme();
+		line++;
+		return s_A1;
+	}
+	int A1_mark()
+	{
+		AddMark();
+		CreateLexeme();
+		return s_A1;
+	}
+	int A1_markP()
+	{
+		AddMark();
+		CreateLexeme();
+		line++;
+		return s_A1;
+	}
+	int A1_var()
+	{
+		AddVariable();
+		CreateLexeme();
+		return s_A1;
+	}
+	int A1_varP()
+	{
+		AddVariable();
+		CreateLexeme();
+		line++;
+		return s_A1;
 	}
 	int B1a()
 	{
 		pos = init_vector[s.value - 'a'];
 		if (pos == 0)
 		{
-			return Error1();
+			return F1a();
 		}
-		else
-		{
-			return s_B1;
-		}
+		lexeme_class = VARIABLE;
+		if (!isalpha(s.value)) s.value += '0';
+		name = (char)s.value;
+		return s_B1;
 	}
 	int B1b()
 	{
 		pos++;
 		return s_B1;
 	}
-	int C1a()
-	{
-		lexeme_class = AR_OP;
-		value = s.value;
-		CreateLexeme();
-		return s_C1;
-	}
-	int C1b()
-	{
-		lexeme_class = END;
-		CreateLexeme();
-		return s_C1;
-	}
 	int C1c()
-	{
-		lexeme_class = READ;
-		CreateLexeme();
-		return s_C1;
-	}
-	int C1d()
-	{
-		lexeme_class = WRITE;
-		CreateLexeme();
-		return s_C1;
-	}
-	int C1e()
-	{
-		AddConst();
-		CreateLexeme();
-		return s_C1;
-	}
-	int C1f()
-	{
-		AddVariable();
-		CreateLexeme();
-		return s_C1;
-	}
-	int C1g()
-	{
-		if (rel == '!') return Error1();
-		if (rel == '=')
-		{
-			rel = 1;
-		}
-		else if (rel == '<')
-		{
-			rel = 3;
-		}
-		else if (rel == '>')
-		{
-			rel = 4;
-		}
-		CreateLexeme();
-		return s_C1;
-	}
-	int C1h()
 	{
 		if (s.value == '=')
 		{
-			if (rel == '!')
+			if (rel == '=')
+			{
+				rel = 1;
+			}
+			else if (rel == '!')
 			{
 				rel = 2;
 			}
-			else if (rel == '<')
+			else if (rel == 3)
 			{
 				rel = 5;
 			}
-			else if (rel == '>')
+			else if (rel == 4)
 			{
 				rel = 6;
 			}
@@ -1341,71 +1357,206 @@ class Parser
 		{
 			return Error1();
 		}
-		CreateLexeme();
+		lexeme_class = RELATION;
 		return s_C1;
 	}
-	int C1i()
-	{
+	int C1_constTree() {
+		lexeme_class = CONST;
 		tree = tree + (char)s.value;
 		AddConst();
-		CreateLexeme();
 		return s_C1;
 	}
-	int C1j()
-	{
-		lexeme_class = FIND;
-		CreateLexeme();
+	int C1_semicolon() {
+		lexeme_class = SEMICOLON;
+		value = s.value;
 		return s_C1;
 	}
-	int C1k()
-	{
+	int C1_openBracket() {
+		lexeme_class = OPEN_BRACKET;
+		value = s.value;
+		return s_C1;
+	}
+	int C1_int() {
+		lexeme_class = INT;
+		return s_C1;
+	}
+	int C1_at() {
+		lexeme_class = AT;
+		return s_C1;
+	}
+	int C1_composition() {
 		lexeme_class = COMPOSITION;
-		CreateLexeme();
 		return s_C1;
 	}
-	int C1l()
-	{
+	int C1_find() {
+		lexeme_class = FIND;
+		return s_C1;
+	}
+	int C1_invert() {
 		lexeme_class = INVERT;
-		CreateLexeme();
 		return s_C1;
 	}
-	int C1m()
-	{
+	int C1_merge() {
 		lexeme_class = MERGE;
-		CreateLexeme();
 		return s_C1;
 	}
-	int D1a()
-	{
+	int C1_closedBracekt() {
+		lexeme_class = CLOSED_BRACKET;
+		value = s.value;
+		return s_C1;
+	}
+	int C1_comma() {
+		lexeme_class = COMMA;
+		value = s.value;
+		return s_C1;
+	}
+	int C1_bad() {
+		lexeme_class = BAD;
+		return s_C1;
+	}
+	int C1_begin() {
+		lexeme_class = BEGIN;
+		return s_C1;
+	}
+	int C1_case() {
+		lexeme_class = CASE;
+		return s_C1;
+	}
+	int C1_cin() {
+		lexeme_class = CIN;
+		return s_C1;
+	}
+	int C1_cout() {
+		lexeme_class = COUT;
+		return s_C1;
+	}
+	int C1_declare() {
+		lexeme_class = DECLARE;
+		return s_C1;
+	}
+	int C1_default() {
+		lexeme_class = DEFAULT;
+		return s_C1;
+	}
+	int C1_do() {
+		lexeme_class = DO;
+		return s_C1;
+	}
+	int C1_else() {
+		lexeme_class = ELSE;
+		return s_C1;
+	}
+	int C1_end() {
+		lexeme_class = END;
+		return s_C1;
+	}
+	int C1_for() {
+		lexeme_class = FOR;
+		return s_C1;
+	}
+	int C1_if() {
+		lexeme_class = IF;
+		return s_C1;
+	}
+	int C1_tree() {
+		lexeme_class = TREE;
+		return s_C1;
+	}
+	int C1_set() {
+		lexeme_class = SET;
+		return s_C1;
+	}
+	int C1_switch() {
+		lexeme_class = SWITCH;
+		return s_C1;
+	}
+	int C1_then() {
+		lexeme_class = THEN;
+		return s_C1;
+	}
+	int C1_to() {
+		lexeme_class = TO;
+		return s_C1;
+	}
+	int C1_while() {
+		lexeme_class = WHILE;
+		return s_C1;
+	}
+	int C1_ArrowL() {
+		if (s.value == '-' && rel == 3) {
+			lexeme_class = ARROW_LEFT;
+		}
+		else {
+			return Error1();
+		}
+		return s_C1;
+	}
+	int C1_ArrowR() {
+		if (value == '-' && s.value == '>') {
+			lexeme_class = ARROW_RIGHT;
+		}
+		else {
+			return Error1();
+		}
+		return s_C1;
+	}
+	int C2a() {
+		lexeme_class = AR_OP;
+		value = s.value;
+		return s_C2;
+	}
+	int C3_jump() {
+		lexeme_class = JUMP;
+		name.clear();
+		return s_C3;
+	}
+	int C4a() {
+		if (!isalpha(s.value)) s.value += '0';
+		name += (char)s.value;
+		return s_C4;
+	}
+	int D1a() {
 		lexeme_class = RELATION;
-		rel = s.value;
+		if (s.value == '=') {
+			lexeme_class = ASSIGNMENT;
+			rel = s.value;
+		}
+		else if (s.value == '<') rel = 3;
+		else if (s.value == '>') rel = 4;
+		else rel = s.value;
 		return s_D1;
 	}
-	int E1a()
-	{
-		lexeme_class = PUSH;
-		flag_const = 1;
-		return s_E1;
+	int E1a() {
+		lexeme_class = COLON;
+		value = s.value;
+		return E1();
 	}
-	int E2a()
-	{
-		lexeme_class = JI;
-		flag_const = 0;
+	int E2a() {
+		lexeme_class = MARK;
+		if (!isalpha(s.value)) s.value += '0';
+		name = (char)s.value;
 		return s_E2;
 	}
-	int E2b()
-	{
-		lexeme_class = JMP;
-		flag_const = 0;
+	int E2b() {
+		if (!isalpha(s.value)) s.value += '0';
+		name += (char)s.value;
 		return s_E2;
 	}
-	int E3a()
-	{
-		lexeme_class = POP;
-		return s_E3;
+	int F1a() {
+		lexeme_class = VARIABLE;
+		if (!isalpha(s.value)) s.value += '0';
+		name = (char)s.value;
+		return s_F1;
 	}
-	int G1a()
-	{
+	int F1b() {
+		lexeme_class = VARIABLE;
+		if (!isalpha(s.value)) s.value += '0';
+		name += (char)s.value;
+		return s_F1;
+	}
+	int G1a() {
+		tree.clear();
+		lexeme_class = CONST;
 		num = s.value;
 		return s_G1;
 	}
@@ -1414,82 +1565,45 @@ class Parser
 		num = 10 * num + s.value;
 		return s_G1;
 	}
-	int H1a()
-	{
-		name = (char)s.value;
-		return s_H1;
-	}
-	int H1b()
-	{
-		name = name + (char)s.value;
-		return s_H1;
-	}
-	int I1a()
-	{
-		lexeme_class = COMMENT;
-		return s_I1;
-	}
-	int I2a()
-	{
-		lexeme_class = COMMENT;
-		return s_I2;
-	}
-	int I2b()
-	{
-		AddConst();
-		CreateLexeme();
-		lexeme_class = COMMENT;
-		return s_I2;
-	}
-	int I2c()
-	{
-		AddVariable();
-		CreateLexeme();
-		lexeme_class = COMMENT;
-		return s_I2;
-	}
-	int I2d()
-	{
-		if (rel == '!') return Error1();
-		CreateLexeme();
-		lexeme_class = COMMENT;
-		return s_I2;
-	}
-	int K1a()
-	{
+	int G2a() {
+		rel = 0;
 		tree = (char)s.value;
-		return s_K1;
+		return s_G2;
 	}
-	int K1b()
-	{
+	int G2b() {
 		tree = tree + (char)(s.value + '0');
-		return s_K1;
+		return s_G2;
 	}
-	int K2a()
+	int G3a()
 	{
 		if (s.value != '>') return Error1();
 		tree = tree + (char)s.value;
-		return s_K2;
+		return s_G3;
 	}
-	int K2b()
-	{
+	int G3b() {
 		tree = tree + (char)(s.value + '0');
-		return s_K2;
+		return s_G3;
 	}
-	int K3a()
-	{
+	int G4a() {
 		tree = tree + (char)s.value;
-		return s_K3;
+		return s_G4;
 	}
-	int K4a()
-	{
-		tree = tree + (char)s.value;
-		return s_K4;
+	int I1a() {
+		if (value == '-' && s.value == '-') {
+			lexeme_class = COMMENT;
+			CreateLexeme();
+			return s_I1;
+		}
+		else {
+			return Error1();
+		}
 	}
 	int M1()
 	{
 		if (table_search[pos].letter == s.value)
 		{
+			if (!isalpha(s.value)) s.value += '0';
+			name += (char)s.value;
 			return (this->*table_search[pos].f)();
 		}
 		else
@@ -1497,7 +1611,7 @@ class Parser
 			pos = table_search[pos].alt;
 			if (pos == 0)
 			{
-				return Error1();
+				return F1b();
 			}
 			else
 			{
@@ -1505,16 +1619,23 @@ class Parser
 			}
 		}
 	}
+
+
+
+	int Error1() {
+		lexeme_class = ERROR;
+		CreateLexeme();
+		cout << "Error line: " << line << endl;
+		return s_J1;
+	}
 	int Exit1()
 	{
 		lexeme_class = ENDMARK;
 		CreateLexeme();
 		return s_Exit;
-
 	}
 	int Exit2()
 	{
-		if (rel == '!') lexeme_class = ERROR;
 		CreateLexeme();
 		lexeme_class = ENDMARK;
 		CreateLexeme();
@@ -1536,221 +1657,14 @@ class Parser
 		CreateLexeme();
 		return s_Exit;
 	}
-
-	void interpretator() {
-		stack<Variable> Stack;
-
-		for (int i = 0; list_lexeme[i].lexeme_token_class != END && list_lexeme[i].lexeme_token_class != ENDMARK; i++)
-		{			
-			if (list_lexeme[i].lexeme_token_class == READ)
-			{
-				cout << "Enter 1 to int, 2 to Tree" << endl;
-				int type;
-				cin >> type;
-				if (type == 1)
-				{
-					int val;
-					cin >> val;
-					Stack.push(Variable("", val, 0));
-				}
-				else if (type == 2)
-				{
-					Tree val;
-					cin >> val;
-					Stack.push(Variable("", val, 1));
-				}
-				else
-				{
-					cout << "Incorrect input, try again" << endl;
-					continue;
-				}
-			}
-			else if (list_lexeme[i].lexeme_token_class == WRITE) {
-				if (!Stack.empty())
-				{
-					cout << Stack.top() << endl;
-					Stack.pop();
-				}
-				else
-				{
-					cout << "Stack already empty" << endl;
-				}
-			}
-			else if (list_lexeme[i].lexeme_token_class == PUSH)
-			{
-				Stack.push(Variable(*(Variable*)(list_lexeme[i].value)));
-			}
-			else if (list_lexeme[i].lexeme_token_class == POP)
-			{
-				*(Variable*)(list_lexeme[i].value) = Stack.top();
-				Stack.pop();
-			}
-			else if (list_lexeme[i].lexeme_token_class == AR_OP)
-			{
-				Variable b = Stack.top();
-				Stack.pop();
-				Variable a = Stack.top();
-				Stack.pop();
-				Variable res;
-				switch (*(int*)(list_lexeme[i].value))
-				{
-				case '+':
-					res = a + b;
-					break;
-				case '-':
-					res = a - b;
-					break;
-				case '*':
-					res = a * b;
-					break;
-				case '/':
-					res = a / b;
-					break;
-				case '%':
-					res = a % b;
-					break;
-				}
-				Stack.push(res);
-			}
-			else if (list_lexeme[i].lexeme_token_class == RELATION)
-			{
-				if (Stack.size() < 2)
-				{
-					cout << "Error: not enough variables" << endl;
-					exit(1);
-				}
-				Variable b = Stack.top();
-				Stack.pop();
-				Variable a = Stack.top();
-				Stack.pop();
-				int res;
-				switch (*(int*)(list_lexeme[i].value))
-				{
-				case 1:
-					res = a == b;
-					break;
-				case 2:
-					res = a != b;
-					break;
-				case 3:
-					res = a < b;
-					break;
-				case 4:
-					res = a > b;
-					break;
-				case 5:
-					res = a <= b;
-					break;
-
-				case 6:
-					res = a >= b;
-					break;
-				}
-				Stack.push(Variable("", res, 0));
-			}
-			else if (list_lexeme[i].lexeme_token_class == JMP)
-			{
-				int tmp_line = *((int*)(list_lexeme[i].value));
-				for (i = tmp_line - 2; list_lexeme[i + 1].line < tmp_line; i++);
-			}
-			else if (list_lexeme[i].lexeme_token_class == JI) {
-				if ((Stack.top().getType() == 0 && (*(int*)(Stack.top().getValue())) > 0) ||
-					(Stack.top().getType() == 1 && (*(Tree*)(Stack.top().getValue())).getRoot())) {
-					int tmp_line = *((int*)(list_lexeme[i].value));
-					for (i = tmp_line - 2; list_lexeme[i + 1].line < tmp_line; i++);
-				}
-				Stack.pop();
-			}
-			else if (list_lexeme[i].lexeme_token_class == COMMENT);
-			else if (list_lexeme[i].lexeme_token_class == FIND)
-			{
-				if (Stack.top().getType() == 0)
-				{
-					int ch = *(int*)(Stack.top().getValue());
-					Stack.pop();
-					if (Stack.top().getType() != 1)
-					{
-						cout << "Error: Incorrect argument type" << endl;
-						exit(1);
-					}
-					Tree b = *(Tree*)(Stack.top().getValue());
-					Stack.pop();
-					int res = b.getValue(ch);
-					Stack.push(Variable("", res, 0));
-				}
-				else
-				{
-					cout << "Error: Incorrect argument type" << endl;
-					exit(1);
-				}
-			}
-			else if (list_lexeme[i].lexeme_token_class == COMPOSITION)
-			{
-				if (Stack.top().getType() == 1)
-				{
-					Tree b = *(Tree*)(Stack.top().getValue());
-					Stack.pop();
-					if (Stack.top().getType() != 1)
-					{
-						cout << "Error: Argument types are not equal" << endl;
-						exit(1);
-					}
-					Tree c = *(Tree*)(Stack.top().getValue());
-					Stack.pop();
-					Tree res = b.composition(c);
-					Stack.push(Variable("", res, 1));
-				}
-				else
-				{
-					cout << "Error: Incorrect argument type" << endl;
-					exit(1);
-				}
-			}
-			else if (list_lexeme[i].lexeme_token_class == INVERT)
-			{
-				if (Stack.top().getType() == 1)
-				{
-					Tree b = *(Tree*)(Stack.top().getValue());
-					Stack.pop();
-					Tree res = b.get_invertable();
-					Stack.push(Variable("", res, 1));
-				}
-				else
-				{
-					cout << "Error: Incorrect argument type" << endl;
-					exit(1);
-				}
-			}
-			else if (list_lexeme[i].lexeme_token_class == MERGE)
-			{
-				if (Stack.top().getType() == 1)
-				{
-					Tree b = *(Tree*)(Stack.top().getValue());
-					Stack.pop();
-					if (Stack.top().getType() != 1)
-					{
-						cout << "Error: Argument types are not equal"  << endl;
-						exit(1);
-					}
-					Tree c = *(Tree*)(Stack.top().getValue());
-					Stack.pop();
-					Tree res = b.merge(c);
-					Stack.push(Variable("", res, 1));
-				}
-				else
-				{
-					cout << "Error: Incorrect argument type" << endl;
-					exit(1);
-				}
-			}
-			else {
-				cout << "Lexeme = Error, Line: " << list_lexeme[i].line << endl;
-				exit(1);
-			}
-			//cout << LexemeTokenClassName[list_lexeme[i].lexeme_token_class] << endl;
-		}
+	int Exit5()
+	{
+		AddMark();
+		CreateLexeme();
+		lexeme_class = ENDMARK;
+		CreateLexeme();
+		return s_Exit;
 	}
-
 public:
 	Parser()
 	{
@@ -1758,118 +1672,183 @@ public:
 			for (int j = 0; j < class_number; j++)
 				table[i][j] = &Parser::Error1;
 
-		table[s_A1][Letter] = &Parser::B1a;     table[s_A1][Ar_Op] = &Parser::C1a;      table[s_A1][Relation] = &Parser::D1a;   table[s_A1][Space] = &Parser::A1;       table[s_A1][LF] = &Parser::A1b;      table[s_A1][Semicolon] = &Parser::I1a;
-		table[s_A2][Letter] = &Parser::B1a;     table[s_A2][Ar_Op] = &Parser::C1a;      table[s_A2][Relation] = &Parser::D1a;   table[s_A2][Space] = &Parser::A2;       table[s_A2][LF] = &Parser::A2a;      table[s_A2][Semicolon] = &Parser::I2a;     table[s_A2][EndOfFile] = &Parser::Exit1;
-		table[s_B1][Letter] = &Parser::M1;      table[s_B1][LF] = &Parser::A2f;
-		table[s_C1][Space] = &Parser::C1;       table[s_C1][LF] = &Parser::A2a;			table[s_C1][Semicolon] = &Parser::I2a;  table[s_C1][EndOfFile] = &Parser::Exit1;
-		table[s_D1][Relation] = &Parser::C1h;   table[s_D1][Space] = &Parser::C1g;      table[s_D1][LF] = &Parser::A2e;         table[s_D1][Semicolon] = &Parser::I2d;                                                                                  table[s_D1][EndOfFile] = &Parser::Exit2;
-		table[s_E1][Space] = &Parser::F1;       table[s_E1][LF] = &Parser::A2f;
-		table[s_E2][Space] = &Parser::F2;       table[s_E2][LF] = &Parser::A2f;
-		table[s_E3][Space] = &Parser::F3;       table[s_E3][LF] = &Parser::A2f;
-		table[s_F1][Letter] = &Parser::H1a;     table[s_F1][Digit] = &Parser::G1a;      table[s_F1][Space] = &Parser::F1;       table[s_F1][Open_Brace] = &Parser::K1a;         table[s_F1][LF] = &Parser::A2f;
-		table[s_F2][Digit] = &Parser::G1a;      table[s_F2][Space] = &Parser::F2;       table[s_F2][LF] = &Parser::A2f;
-		table[s_F3][Letter] = &Parser::H1a;     table[s_F3][Space] = &Parser::F3;       table[s_F3][LF] = &Parser::A2f;
-		table[s_G1][Digit] = &Parser::G1b;      table[s_G1][Space] = &Parser::C1e;      table[s_G1][LF] = &Parser::A2c;         table[s_G1][Semicolon] = &Parser::I2b;          table[s_G1][EndOfFile] = &Parser::Exit3;
-		table[s_H1][Letter] = &Parser::H1b;     table[s_H1][Digit] = &Parser::H1b;      table[s_H1][Space] = &Parser::C1f;      table[s_H1][LF] = &Parser::A2d;                 table[s_H1][Semicolon] = &Parser::I2c;      table[s_H1][EndOfFile] = &Parser::Exit4;
-		table[s_I1][Letter] = &Parser::I1;      table[s_I1][Digit] = &Parser::I1;       table[s_I1][Ar_Op] = &Parser::I1;       table[s_I1][Relation] = &Parser::I1;            table[s_I1][Space] = &Parser::I1;           table[s_I1][LF] = &Parser::A1a;  table[s_I1][Semicolon] = &Parser::I1;  table[s_I1][Error] = &Parser::I1;
-		table[s_I2][Letter] = &Parser::I2;      table[s_I2][Digit] = &Parser::I2;       table[s_I2][Ar_Op] = &Parser::I2;       table[s_I2][Relation] = &Parser::I2;            table[s_I2][Space] = &Parser::I2;           table[s_I2][LF] = &Parser::A2b;  table[s_I2][Semicolon] = &Parser::I2;  table[s_I2][Error] = &Parser::I2; table[s_I2][EndOfFile] = &Parser::Exit1;
-		table[s_J1][Letter] = &Parser::J1;      table[s_J1][Digit] = &Parser::J1;       table[s_J1][Ar_Op] = &Parser::J1;       table[s_J1][Relation] = &Parser::J1;            table[s_J1][Space] = &Parser::J1;           table[s_J1][LF] = &Parser::A2a;  table[s_J1][Semicolon] = &Parser::J1;  table[s_J1][Error] = &Parser::J1; table[s_J1][EndOfFile] = &Parser::Exit1;
-		table[s_K1][Digit] = &Parser::K1b;		table[s_K1][Relation] = &Parser::K2a;	
-		table[s_K2][Digit] = &Parser::K2b;      table[s_K2][Space] = &Parser::K3;       table[s_K2][Comma] = &Parser::K4a;     table[s_K2][Closed_Brace] = &Parser::C1i;
-		table[s_K3][Space] = &Parser::K3;       table[s_K3][Comma] = &Parser::K4a;
-		table[s_K4][Digit] = &Parser::K1b;      table[s_K4][Space] = &Parser::K4;
+		table[s_A1][Letter] = &Parser::B1a;		table[s_A1][Digit] = &Parser::G1a;		table[s_A1][Ar_Op] = &Parser::C2a;			table[s_A1][Relation] = &Parser::D1a;			table[s_A1][Space] = &Parser::A1;			table[s_A1][LF] = &Parser::A1a;			table[s_A1][Semicolon] = &Parser::C1_semicolon;		table[s_A1][Colon] = &Parser::E1a;		table[s_A1][OpenCurveBracket] = &Parser::G2a;															table[s_A1][OpenBracket] = &Parser::C1_openBracket;		table[s_A1][ClosedBracket] = &Parser::C1_closedBracekt;		table[s_A1][Comma] = &Parser::C1_comma;											table[s_A1][EndOfFile] = &Parser::Exit1;
+		table[s_B1][Letter] = &Parser::M1;																																			table[s_B1][Space] = &Parser::A1_var;		table[s_B1][LF] = &Parser::A1_varP;																																																																																																				table[s_B1][EndOfFile] = &Parser::Exit4;
+		table[s_C1][Letter] = &Parser::F1b;		table[s_C1][Digit] = &Parser::F1b;																									table[s_C1][Space] = &Parser::A1c;			table[s_C1][LF] = &Parser::A1b;																																																																																																					table[s_C1][EndOfFile] = &Parser::Exit2;
+		table[s_C2][Ar_Op] = &Parser::I1a;			table[s_C2][Relation] = &Parser::C1_ArrowR;		table[s_C2][Space] = &Parser::A1c;			table[s_C2][LF] = &Parser::A1b;																																																																																																					table[s_C2][EndOfFile] = &Parser::Exit2;
+		table[s_C3][Letter] = &Parser::C4a;																																			table[s_C3][Space] = &Parser::C3;
+		table[s_C4][Letter] = &Parser::C4a;		table[s_C4][Digit] = &Parser::C4a;																									table[s_C4][Space] = &Parser::A1c;			table[s_C4][LF] = &Parser::A1b;																																																																																																					table[s_C4][EndOfFile] = &Parser::Exit2;
+		table[s_D1][Ar_Op] = &Parser::C1_ArrowL;	table[s_D1][Relation] = &Parser::C1c;			table[s_D1][Space] = &Parser::A1d;			table[s_D1][LF] = &Parser::A1e;																																																																																																					table[s_D1][EndOfFile] = &Parser::Exit2;
+		table[s_E1][Letter] = &Parser::E2a;																																			table[s_E1][Space] = &Parser::A1c;			table[s_E1][LF] = &Parser::A1b;																																																																																																					table[s_E1][EndOfFile] = &Parser::Exit2;
+		table[s_E2][Letter] = &Parser::E2b;		table[s_E2][Digit] = &Parser::E2b;																									table[s_E2][Space] = &Parser::A1_mark;		table[s_E2][LF] = &Parser::A1_markP;	table[s_E2][EndOfFile] = &Parser::Exit5;
+		table[s_F1][Letter] = &Parser::F1b;		table[s_F1][Digit] = &Parser::F1b;																									table[s_F1][Space] = &Parser::A1_var;		table[s_F1][LF] = &Parser::A1_varP;																																																																																																				table[s_F1][EndOfFile] = &Parser::Exit4;
+		table[s_G1][Digit] = &Parser::G1b;																									table[s_G1][Space] = &Parser::A1_const;		table[s_G1][LF] = &Parser::A1_constP;																																																																																																			table[s_G1][EndOfFile] = &Parser::Exit3;
+		table[s_G2][Digit] = &Parser::G2b;													table[s_G2][Relation] = &Parser::G3a;
+		table[s_G3][Digit] = &Parser::G3b;																																																																																	table[s_G3][ClosedCurveBracket] = &Parser::C1_constTree;																													table[s_G3][Comma] = &Parser::G4a;
+		table[s_G4][Digit] = &Parser::G2b;																									table[s_G4][Space] = &Parser::G4;
+		table[s_I1][Letter] = &Parser::I1;		table[s_I1][Digit] = &Parser::I1;		table[s_I1][Ar_Op] = &Parser::I1;			table[s_I1][Relation] = &Parser::I1;			table[s_I1][Space] = &Parser::I1;			table[s_I1][LF] = &Parser::A1a;			table[s_I1][Semicolon] = &Parser::I1;				table[s_I1][Colon] = &Parser::I1;		table[s_I1][OpenCurveBracket] = &Parser::I1;	table[s_I1][ClosedCurveBracket] = &Parser::I1;			table[s_I1][OpenBracket] = &Parser::I1;					table[s_I1][ClosedBracket] = &Parser::I1;					table[s_I1][Comma] = &Parser::I1;			table[s_I1][Error] = &Parser::I1; 	table[s_I1][EndOfFile] = &Parser::Exit1;
+		table[s_J1][Letter] = &Parser::J1;		table[s_J1][Digit] = &Parser::J1;		table[s_J1][Ar_Op] = &Parser::J1;			table[s_J1][Relation] = &Parser::J1;			table[s_J1][Space] = &Parser::J1;			table[s_J1][LF] = &Parser::A1a;			table[s_J1][Semicolon] = &Parser::J1;				table[s_J1][Colon] = &Parser::J1;		table[s_J1][OpenCurveBracket] = &Parser::J1;	table[s_J1][ClosedCurveBracket] = &Parser::J1;			table[s_J1][OpenBracket] = &Parser::J1;					table[s_J1][ClosedBracket] = &Parser::J1;					table[s_J1][Comma] = &Parser::J1;			table[s_J1][Error] = &Parser::J1;	table[s_J1][EndOfFile] = &Parser::Exit1;
 
-		for (int i = 0; i < 40; i++) table_search[i].f = &Parser::B1b;
-		table_search[1].letter = 'n';
-		table_search[2].letter = 'd';  table_search[2].f = &Parser::C1b;
-		table_search[3].letter = 'i';  table_search[3].f = &Parser::E2a;    table_search[3].alt = 4;
-		table_search[4].letter = 'm';
-		table_search[5].letter = 'p';  table_search[5].f = &Parser::E2b;
-		table_search[6].letter = 'o';                                       table_search[6].alt = 8;
-		table_search[7].letter = 'p';  table_search[7].f = &Parser::E3a;
-		table_search[8].letter = 'u';
+
+		for (int i = 0; i < 400; i++) table_search[i].f = &Parser::B1b;
+
+		//at
+		table_search[1].letter = 't';	table_search[1].f = &Parser::C1_at;
+		//bad
+		table_search[2].letter = 'a';												table_search[2].alt = 4;
+		table_search[3].letter = 'd';	table_search[3].f = &Parser::C1_bad;
+		//begin
+		table_search[4].letter = 'e';
+		table_search[5].letter = 'g';
+		table_search[6].letter = 'i';
+		table_search[7].letter = 'n';	table_search[7].f = &Parser::C1_begin;
+		//case
+		table_search[8].letter = 'a';												table_search[8].alt = 11;
 		table_search[9].letter = 's';
-		table_search[10].letter = 'h'; table_search[10].f = &Parser::E1a;
-		table_search[11].letter = 'e';
-		table_search[12].letter = 'a';
-		table_search[13].letter = 'd'; table_search[13].f = &Parser::C1c;
-		table_search[14].letter = 'r';
-		table_search[15].letter = 'i';
-		table_search[16].letter = 't';
-		table_search[17].letter = 'e'; table_search[17].f = &Parser::C1d;
+		table_search[10].letter = 'e';	table_search[10].f = &Parser::C1_case;
+		//cin
+		table_search[11].letter = 'i';												table_search[11].alt = 13;
+		table_search[12].letter = 'n';	table_search[12].f = &Parser::C1_cin;
+		//composition
+		table_search[13].letter = 'o';
+		table_search[14].letter = 'm';												table_search[14].alt = 23;
+		table_search[15].letter = 'p';
+		table_search[16].letter = 'o';
+		table_search[17].letter = 's';
 		table_search[18].letter = 'i';
-		table_search[19].letter = 'n';
-		table_search[20].letter = 'd'; table_search[20].f = &Parser::C1j;
+		table_search[19].letter = 't';
+		table_search[20].letter = 'i';
 		table_search[21].letter = 'o';
-		table_search[22].letter = 'm';
-		table_search[23].letter = 'p';
-		table_search[24].letter = 'o';
-		table_search[25].letter = 's';
-		table_search[26].letter = 'i';
-		table_search[27].letter = 't';
-		table_search[28].letter = 'i';
-		table_search[29].letter = 'o';
-		table_search[30].letter = 'n'; table_search[30].f = &Parser::C1k;
-		table_search[31].letter = 'n';
-		table_search[32].letter = 'v';
-		table_search[33].letter = 'e';
-		table_search[34].letter = 'r';
-		table_search[35].letter = 't'; table_search[35].f = &Parser::C1l;
-		table_search[36].letter = 'e';
-		table_search[37].letter = 'r';
-		table_search[38].letter = 'g';
-		table_search[39].letter = 'e'; table_search[39].f = &Parser::C1m;
+		table_search[22].letter = 'n';	table_search[22].f = &Parser::C1_composition;
+		//cout
+		table_search[23].letter = 'u';
+		table_search[24].letter = 't';	table_search[24].f = &Parser::C1_cout;
+		//declare
+		table_search[25].letter = 'e';												table_search[25].alt = 36;
+		table_search[26].letter = 'c';												table_search[26].alt = 31;
+		table_search[27].letter = 'l';
+		table_search[28].letter = 'a';
+		table_search[29].letter = 'r';
+		table_search[30].letter = 'e';	table_search[30].f = &Parser::C1_declare;
+		//default
+		table_search[31].letter = 'f';
+		table_search[32].letter = 'a';
+		table_search[33].letter = 'u';
+		table_search[34].letter = 'l';
+		table_search[35].letter = 't';	table_search[35].f = &Parser::C1_default;
+		//do
+		table_search[36].letter = 'o';	table_search[36].f = &Parser::C1_do;
+		//else
+		table_search[37].letter = 'l';												table_search[37].alt = 40;
+		table_search[38].letter = 's';
+		table_search[39].letter = 'e';	table_search[39].f = &Parser::C1_else;
+		//end
+		table_search[40].letter = 'n';
+		table_search[41].letter = 'd';	table_search[41].f = &Parser::C1_end;
+		//find
+		table_search[42].letter = 'i';												table_search[42].alt = 45;
+		table_search[43].letter = 'n';
+		table_search[44].letter = 'd';	table_search[44].f = &Parser::C1_find;
+		//for
+		table_search[45].letter = 'o';
+		table_search[46].letter = 'r';	table_search[46].f = &Parser::C1_for;
+		//if
+		table_search[47].letter = 'f';	table_search[47].f = &Parser::C1_if;		table_search[47].alt = 48;
+		//int
+		table_search[48].letter = 'n';
+		table_search[49].letter = 't';	table_search[49].f = &Parser::C1_int;		table_search[49].alt = 50;
+		//invert
+		table_search[50].letter = 'v';
+		table_search[51].letter = 'e';
+		table_search[52].letter = 'r';
+		table_search[53].letter = 't';	table_search[53].f = &Parser::C1_invert;
+		//jump
+		table_search[54].letter = 'u';
+		table_search[55].letter = 'm';
+		table_search[56].letter = 'p';	table_search[56].f = &Parser::C3_jump;
+		//merge
+		table_search[57].letter = 'e';
+		table_search[58].letter = 'r';
+		table_search[59].letter = 'g';
+		table_search[60].letter = 'e'; table_search[60].f = &Parser::C1_merge;
+		//set
+		table_search[61].letter = 'e';												table_search[61].alt = 63;
+		table_search[62].letter = 't';	table_search[62].f = &Parser::C1_set;
+		//switch
+		table_search[63].letter = 'w';
+		table_search[64].letter = 'i';
+		table_search[65].letter = 't';
+		table_search[66].letter = 'c';
+		table_search[67].letter = 'h';	table_search[67].f = &Parser::C1_switch;
+		//then
+		table_search[68].letter = 'h';												table_search[68].alt = 71;
+		table_search[69].letter = 'e';
+		table_search[70].letter = 'n';	table_search[70].f = &Parser::C1_then;
+		//to
+		table_search[71].letter = 'o';	table_search[71].f = &Parser::C1_to;		table_search[71].alt = 72;
+		//tree
+		table_search[72].letter = 'r';
+		table_search[73].letter = 'e';
+		table_search[74].letter = 'e';	table_search[74].f = &Parser::C1_tree;
+		//while
+		table_search[75].letter = 'h';
+		table_search[76].letter = 'i';
+		table_search[77].letter = 'l';
+		table_search[78].letter = 'e';	table_search[78].f = &Parser::C1_while;
 	}
 
 	void printLists() {
-		cout << "table_const\nAdress\t\t\tValue" << endl;
+		cout << "Const table\nAdress\t\t\tName" << endl;
 		for (auto i : table_const) {
-			cout << i << '\t';
-			if (i->getType() == 0) cout << *(int*)(i->getValue()) << endl;
-			else cout << *(Tree*)(i->getValue()) << endl;
+			cout << i << "\t\t";
+			if (i->getType() == 0) {
+				cout << *(int*)(i->getValue()) << endl;
+			}
+			else {
+				cout << *(Tree*)(i->getValue()) << endl;
+			}
 		}
 
-		cout << endl << "table_name\nAdress\t\t\tName" << endl;
+		cout << endl << "Variable table\nAdress\t\t\tName" << endl;
 		for (auto i : table_name)
-			cout << i << '\t' << i->getName() << endl;
+			cout << i << "\t\t" << i->getName() << endl;
+
+		cout << endl << "Label table\nAdress\t\t\tName" << endl;
+		for (auto i : table_mark)
+			cout << i << "\t\t" << *i << endl;
 
 
-		cout << endl << "Lexeme list\nClass\tAdress\t\t\tLine" << endl;
+		cout << endl << "Lexeme list\nLine\tClass\t\t\tAdress\t\t\tValue" << endl;
 		for (auto i : list_lexeme)
 			cout << i << endl;
 
 		cout << endl;
 	}
 
-	void parse(const char* filename)
-	{
+	void parse(const char* filename) {
 		ifstream in(filename);
 		if (!in)
 		{
-			cout << "Не удалось открыть файл " << filename << endl;
+			cout << "Open Error " << filename << endl;
 			return;
 		}
 
-		int ch;             
+		int ch;
 		int state = s_A1;
 		while (state != s_Exit)
-		{	
+		{
 			ch = in.get();
 			s = transliterator(ch);
 			state = (this->*table[state][s.symbolic_token_class])();
 		}
 		printLists();
-		interpretator();
 		in.close();
 	}
 };
-
-int main(int argc, char* argv[])
-{
-	setlocale(LC_ALL, "Russian");
+int main(int argc, char* argv[]) {
 	if (argc != 2)
 	{
-		cout << "Формат: ./имя-исполняемого-файла имя-входного-файла" << endl;
+		cout << "File Error";
 		return 1;
 	}
 
